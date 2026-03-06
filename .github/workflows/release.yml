@@ -23,16 +23,20 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
-      - name: Pre-download dmg-builder binaries
+
+      - name: Pre-download dmg-builder binary
         run: |
-          mkdir -p ~/.electron-builder/cache/dmg-builder/dmg-builder-1.2.0
+          mkdir -p $HOME/.cache/electron-builder/dmg-builder/dmg-builder-1.2.0
           curl -L "https://github.com/electron-userland/electron-builder-binaries/releases/download/dmg-builder%401.2.0/dmgbuild-bundle-arm64-75c8a6c.tar.gz" \
-            -o ~/.electron-builder/cache/dmg-builder/dmg-builder-1.2.0/dmgbuild-bundle-arm64-75c8a6c.tar.gz
+            -o "$HOME/.cache/electron-builder/dmg-builder/dmg-builder-1.2.0/dmgbuild-bundle-arm64-75c8a6c.tar.gz"
+
+      - run: npm ci
+
       - run: npm run build && npx electron-builder --mac --arm64 --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
+          ELECTRON_BUILDER_CACHE: ${{ env.HOME }}/.cache/electron-builder
