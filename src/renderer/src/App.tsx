@@ -1,21 +1,24 @@
 import { useState } from 'react'
+import type { Page } from './components/Sidebar'
 import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './pages/Dashboard'
 import { Goals } from './pages/Goals'
 import { Habits } from './pages/Habits'
-
-type Page = 'dashboard' | 'goals' | 'habits'
+import { Projects } from './pages/Projects'
 
 function App(): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
 
   return (
-    <div className="flex h-screen w-full bg-gray-950 text-gray-100">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <main className="flex-1 overflow-auto">
+    <div className="app-layout">
+      <aside className="app-sidebar">
+        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      </aside>
+      <main className="app-main">
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'goals' && <Goals />}
         {currentPage === 'habits' && <Habits />}
+        {currentPage === 'projects' && <Projects />}
       </main>
     </div>
   )

@@ -1,37 +1,90 @@
-type Page = 'dashboard' | 'goals' | 'habits'
+export type Page = 'dashboard' | 'goals' | 'habits' | 'projects'
 
 interface SidebarProps {
   currentPage: Page
   onNavigate: (page: Page) => void
 }
 
-export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-  const navItems: { id: Page; label: string }[] = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'goals', label: 'Goals' },
-    { id: 'habits', label: 'Habits' }
-  ]
+const navItems: { id: Page; label: string }[] = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'goals', label: 'Goals' },
+  { id: 'habits', label: 'Habits' },
+  { id: 'projects', label: 'Projects' }
+]
 
+export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
-    <aside className="w-56 flex-shrink-0 border-r border-gray-700 bg-gray-900">
-      <div className="flex h-full flex-col p-4">
-        <h1 className="mb-6 text-lg font-semibold text-gray-100">Upward</h1>
-        <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
+    <>
+      <div style={{ padding: 24 }}>
+        <h1
+          style={{
+            color: '#fff',
+            fontSize: 20,
+            fontWeight: 700
+          }}
+        >
+          🧭 Norte
+        </h1>
+      </div>
+      <div
+        style={{
+          height: 1,
+          background: '#1f1f1f',
+          margin: '0 16px'
+        }}
+      />
+      <nav
+        style={{
+          flex: 1,
+          padding: '16px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8
+        }}
+      >
+        {navItems.map((item) => {
+          const isActive = currentPage === item.id
+          return (
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
-                currentPage === item.id
-                  ? 'bg-gray-700 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-              }`}
+              type="button"
+              style={{
+                padding: '10px 20px',
+                borderRadius: 8,
+                fontSize: 14,
+                textAlign: 'left',
+                background: isActive ? '#1a0a0a' : 'transparent',
+                color: isActive ? '#E63946' : '#555',
+                borderLeft: `3px solid ${isActive ? '#E63946' : 'transparent'}`,
+                transition: 'color 0.15s, background 0.15s'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.color = '#888'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.color = '#555'
+                }
+              }}
             >
               {item.label}
             </button>
-          ))}
-        </nav>
+          )
+        })}
+      </nav>
+      <div
+        style={{
+          padding: '20px 24px',
+          borderTop: '1px solid #1f1f1f',
+          color: '#333',
+          fontSize: 11
+        }}
+      >
+        2026 · Done is better than perfect
       </div>
-    </aside>
+    </>
   )
 }

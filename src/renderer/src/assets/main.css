@@ -4,10 +4,52 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
 body {
-  @apply overflow-hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 #root {
-  @apply flex h-screen w-full;
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  flex-shrink: 0;
+  width: 220px;
+  height: 100%;
+  background: #0d0d0d;
+  border-right: 1px solid #1f1f1f;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: #0a0a0a;
+  padding: 32px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr !important;
+  }
 }

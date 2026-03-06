@@ -5,11 +5,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: 'var(--color-background)',
-        'background-soft': 'var(--color-background-soft)',
-        'background-mute': 'var(--color-background-mute)',
-        'text-primary': 'var(--color-text)',
+        norte: {
+          bg: '#0a0a0a',
+          card: '#111111',
+          border: '#1a1a1a',
+          text: '#F0EAD6',
+          muted: '#8a8578',
+          primary: '#E63946',
+          primaryHover: '#FF6B6B'
+        }
       },
+      fontFamily: {
+        sans: ['DM Sans', 'sans-serif'],
+        serif: ['Playfair Display', 'serif']
+      },
+      borderRadius: {
+        card: '12px'
+      }
     },
   },
   plugins: [],
