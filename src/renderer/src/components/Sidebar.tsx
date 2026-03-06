@@ -24,7 +24,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             fontWeight: 700
           }}
         >
-          🧭 Norte
+          🧭 Upward
         </h1>
       </div>
       <div

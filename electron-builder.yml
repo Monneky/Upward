@@ -1,5 +1,5 @@
-appId: com.norte.app
-productName: Norte
+appId: com.upward.app
+productName: Upward
 
 directories:
   buildResources: build

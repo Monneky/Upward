@@ -1,4 +1,4 @@
-# How to Release Norte (Upward)
+# How to Release Upward
 
 ## Trigger a Release
 
