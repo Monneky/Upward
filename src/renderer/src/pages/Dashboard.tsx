@@ -63,13 +63,13 @@ export function Dashboard() {
           style={{
             fontSize: 28,
             fontWeight: 700,
-            color: '#F0EAD6',
+            color: 'var(--color-text)',
             marginBottom: 4
           }}
         >
           Dashboard
         </h1>
-        <p style={{ fontSize: 13, color: '#444' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
           Overview of your goals and progress
         </p>
       </header>
@@ -89,7 +89,7 @@ export function Dashboard() {
               style={{
                 fontSize: 11,
                 letterSpacing: 3,
-                color: '#444',
+                color: 'var(--color-muted)',
                 textTransform: 'uppercase',
                 marginBottom: 8
               }}
@@ -115,7 +115,7 @@ export function Dashboard() {
             style={{
               fontSize: 18,
               fontWeight: 600,
-              color: '#F0EAD6',
+              color: 'var(--color-text)',
               marginBottom: 16
             }}
           >
@@ -148,7 +148,7 @@ export function Dashboard() {
           style={{
             fontSize: 18,
             fontWeight: 600,
-            color: '#F0EAD6',
+            color: 'var(--color-text)',
             marginBottom: 16
           }}
         >
@@ -172,10 +172,10 @@ export function Dashboard() {
                   <Card style={{ padding: 20 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-                        <span style={{ fontWeight: 500, color: '#F0EAD6' }}>
+                        <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
                           {goal.title}
                         </span>
-                        <span style={{ fontSize: 14, color: '#888' }}>
+                        <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
                           {goal.progress} / {goal.target} {goal.unit}
                         </span>
                       </div>

@@ -15,7 +15,7 @@ export function ProgressBar({ value, className = '' }: ProgressBarProps) {
         height: 6,
         overflow: 'hidden',
         borderRadius: 9999,
-        background: '#1f1f1f'
+        background: 'var(--color-progress-bg)'
       }}
       role="progressbar"
       aria-valuenow={Math.round(pct)}

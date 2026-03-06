@@ -29,8 +29,56 @@ button:focus {
   outline: none;
 }
 
+:root {
+  --color-primary: #e63946;
+  --color-primary-hover: #ff6b6b;
+  /* Fallback until theme class is applied */
+  --color-bg: #0a0a0a;
+  --color-bg-sidebar: #0d0d0d;
+  --color-border-subtle: #1f1f1f;
+  --color-text: #f0ead6;
+  --color-muted: #888888;
+  --color-input-bg: #111111;
+  --color-card-bg: #111111;
+  --color-card-border: #1f1f1f;
+  --color-nav-divider: #1f1f1f;
+  --color-footer-text: #333333;
+  --color-progress-bg: #1f1f1f;
+  --color-selection-bg: #1a0a0a;
+}
+
+html.theme-dark {
+  --color-bg: #0a0a0a;
+  --color-bg-sidebar: #0d0d0d;
+  --color-border-subtle: #1f1f1f;
+  --color-text: #f0ead6;
+  --color-muted: #888888;
+  --color-input-bg: #111111;
+  --color-card-bg: #111111;
+  --color-card-border: #1f1f1f;
+  --color-nav-divider: #1f1f1f;
+  --color-footer-text: #333333;
+  --color-progress-bg: #1f1f1f;
+  --color-selection-bg: #1a0a0a;
+}
+
+html.theme-light {
+  --color-bg: #f9fafb;
+  --color-bg-sidebar: #ffffff;
+  --color-border-subtle: #e5e7eb;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-input-bg: #ffffff;
+  --color-card-bg: #ffffff;
+  --color-card-border: #e5e7eb;
+  --color-nav-divider: #e5e7eb;
+  --color-footer-text: #9ca3af;
+  --color-progress-bg: #e5e7eb;
+  --color-selection-bg: #f3f4f6;
+}
+
 .btn-cta {
-  background: #e63946;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 8px;
   padding: 8px 20px;
@@ -42,7 +90,7 @@ button:focus {
 }
 
 .btn-cta:hover {
-  background: #ff6b6b;
+  background: var(--color-primary-hover);
 }
 
 .btn-cta:disabled {
@@ -55,29 +103,29 @@ textarea,
 select {
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
-  color: #f0ead6;
-  background: #111;
-  border: 1px solid #1f1f1f;
+  color: var(--color-text);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   padding: 10px 14px;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #555;
+  color: var(--color-muted);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #e63946;
+  border-color: var(--color-primary);
 }
 
 body {
   min-height: 100vh;
-  color: #f0ead6;
-  background: #0a0a0a;
+  color: var(--color-text);
+  background: var(--color-bg);
   line-height: 1.6;
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;

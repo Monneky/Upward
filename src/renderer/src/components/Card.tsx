@@ -11,8 +11,8 @@ export function Card({ children, className = '', style }: CardProps) {
     <div
       className={className}
       style={{
-        background: '#111',
-        border: '1px solid #1f1f1f',
+        background: 'var(--color-card-bg)',
+        border: '1px solid var(--color-card-border)',
         borderRadius: 12,
         ...style
       }}

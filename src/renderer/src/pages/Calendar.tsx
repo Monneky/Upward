@@ -63,13 +63,13 @@ export function Calendar() {
           style={{
             fontSize: 28,
             fontWeight: 700,
-            color: '#F0EAD6',
+            color: 'var(--color-text)',
             marginBottom: 4
           }}
         >
           Calendario
         </h1>
-        <p style={{ fontSize: 13, color: '#444' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
           Deadlines de tus goals
         </p>
       </header>
@@ -87,7 +87,7 @@ export function Calendar() {
             style={{
               fontSize: 18,
               fontWeight: 600,
-              color: '#F0EAD6'
+              color: 'var(--color-text)'
             }}
           >
             {MONTHS[month]} {year}
@@ -98,10 +98,10 @@ export function Calendar() {
               onClick={prevMonth}
               style={{
                 padding: '6px 12px',
-                background: '#111',
-                border: '1px solid #1f1f1f',
+                background: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border-subtle)',
                 borderRadius: 8,
-                color: '#888',
+                color: 'var(--color-muted)',
                 fontSize: 13,
                 cursor: 'pointer'
               }}
@@ -113,10 +113,10 @@ export function Calendar() {
               onClick={today}
               style={{
                 padding: '6px 12px',
-                background: '#111',
-                border: '1px solid #1f1f1f',
+                background: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border-subtle)',
                 borderRadius: 8,
-                color: '#888',
+                color: 'var(--color-muted)',
                 fontSize: 13,
                 cursor: 'pointer'
               }}
@@ -128,10 +128,10 @@ export function Calendar() {
               onClick={nextMonth}
               style={{
                 padding: '6px 12px',
-                background: '#111',
-                border: '1px solid #1f1f1f',
+                background: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border-subtle)',
                 borderRadius: 8,
-                color: '#888',
+                color: 'var(--color-muted)',
                 fontSize: 13,
                 cursor: 'pointer'
               }}
@@ -155,7 +155,7 @@ export function Calendar() {
                 padding: 8,
                 fontSize: 11,
                 fontWeight: 600,
-                color: '#444',
+                color: 'var(--color-muted)',
                 textAlign: 'center'
               }}
             >
@@ -179,10 +179,10 @@ export function Calendar() {
                 onClick={() => setSelectedDate(isSelected ? null : dateKey)}
                 style={{
                   padding: 10,
-                  background: isSelected ? '#1a0a0a' : 'transparent',
+                  background: isSelected ? 'var(--color-selection-bg)' : 'transparent',
                   border: `1px solid ${isToday ? '#E63946' : 'transparent'}`,
                   borderRadius: 8,
-                  color: hasDeadline ? '#F0EAD6' : '#555',
+                  color: hasDeadline ? 'var(--color-text)' : 'var(--color-muted)',
                   fontSize: 14,
                   cursor: 'pointer',
                   position: 'relative'
@@ -215,7 +215,7 @@ export function Calendar() {
             style={{
               fontSize: 14,
               fontWeight: 600,
-              color: '#888',
+                  color: 'var(--color-muted)',
               marginBottom: 12
             }}
           >
@@ -227,15 +227,15 @@ export function Calendar() {
                 key={goal.id}
                 style={{
                   padding: 12,
-                  background: '#0a0a0a',
+                  background: 'var(--color-card-bg)',
                   borderRadius: 8,
-                  border: '1px solid #1f1f1f'
+                  border: '1px solid var(--color-card-border)'
                 }}
               >
-                <span style={{ fontWeight: 500, color: '#F0EAD6' }}>
+                <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
                   {goal.title}
                 </span>
-                <span style={{ marginLeft: 8, fontSize: 13, color: '#888' }}>
+                <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--color-muted)' }}>
                   {goal.progress} / {goal.target} {goal.unit}
                 </span>
               </li>
@@ -245,7 +245,7 @@ export function Calendar() {
       )}
 
       {goals.filter((g) => g.deadline).length === 0 && (
-        <p style={{ fontSize: 13, color: '#555' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
           No hay goals con deadline. Añade fechas límite en Goals para verlas aquí.
         </p>
       )}
