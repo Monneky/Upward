@@ -13,7 +13,7 @@
 3. **GitHub Actions** will automatically:
    - Run on `macos-latest`
    - Install dependencies with `npm ci`
-   - Build the Electron app with `npm run build` and `electron-builder --mac`
+   - Build the Electron app with `npm run build:mac`
    - Create a GitHub Release from the tag
    - Upload the `.dmg` files (Intel x64 and Apple Silicon arm64) as release assets
 
