@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { Goal, Habit } from '@shared/schema'
+import type { Goal, Habit, Note } from '@shared/schema'
 
 export interface UpwardAPI {
   goals: {
@@ -35,6 +35,12 @@ export interface UpwardAPI {
     ) => Promise<Habit>
     delete: (id: number) => Promise<{ success: boolean }>
     incrementDay: (id: number) => Promise<Habit | null>
+  }
+  notes: {
+    getAll: () => Promise<Note[]>
+    create: (data: { title: string; content?: string }) => Promise<Note>
+    update: (id: number, data: Partial<{ title: string; content: string }>) => Promise<Note>
+    delete: (id: number) => Promise<{ success: boolean }>
   }
 }
 

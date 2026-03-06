@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useGoalsStore } from '@renderer/store/goalsStore'
+import { useNotesStore } from '@renderer/store/notesStore'
 import { Card } from '@renderer/components/Card'
-import type { Goal } from '@renderer/types'
+import type { Goal, Note } from '@renderer/types'
 
 const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = [
@@ -22,24 +23,36 @@ function parseDeadline(deadline: string | null): string | null {
 
 export function Calendar() {
   const { goals, fetchGoals } = useGoalsStore()
+  const { notes, fetchNotes } = useNotesStore()
   const [viewDate, setViewDate] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   useEffect(() => {
     fetchGoals()
-  }, [fetchGoals])
+    fetchNotes()
+  }, [fetchGoals, fetchNotes])
 
-  const goalsByDeadline = useMemo(() => {
-    const map = new Map<string, Goal[]>()
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, { goals: Goal[]; notes: Note[] }>()
+
+    // Add goals by deadline
     for (const g of goals) {
       const key = parseDeadline(g.deadline)
       if (key) {
-        if (!map.has(key)) map.set(key, [])
-        map.get(key)!.push(g)
+        if (!map.has(key)) map.set(key, { goals: [], notes: [] })
+        map.get(key)!.goals.push(g)
       }
     }
+
+    // Add notes by creation date
+    for (const n of notes) {
+      const key = toDateKey(new Date(n.createdAt))
+      if (!map.has(key)) map.set(key, { goals: [], notes: [] })
+      map.get(key)!.notes.push(n)
+    }
+
     return map
-  }, [goals])
+  }, [goals, notes])
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -167,7 +180,10 @@ export function Calendar() {
               return <div key={`empty-${i}`} />
             }
             const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-            const hasDeadline = goalsByDeadline.has(dateKey)
+            const events = eventsByDate.get(dateKey)
+            const hasGoals = (events?.goals.length ?? 0) > 0
+            const hasNotes = (events?.notes.length ?? 0) > 0
+            const hasEvents = hasGoals || hasNotes
             const isSelected = selectedDate === dateKey
             const isToday =
               toDateKey(new Date()) === dateKey
@@ -182,24 +198,38 @@ export function Calendar() {
                   background: isSelected ? 'var(--color-selection-bg)' : 'transparent',
                   border: `1px solid ${isToday ? '#E63946' : 'transparent'}`,
                   borderRadius: 8,
-                  color: hasDeadline ? 'var(--color-text)' : 'var(--color-muted)',
+                  color: hasEvents ? 'var(--color-text)' : 'var(--color-muted)',
                   fontSize: 14,
                   cursor: 'pointer',
                   position: 'relative'
                 }}
               >
                 {day}
-                {hasDeadline && (
+                {hasGoals && (
                   <span
                     style={{
                       position: 'absolute',
                       bottom: 4,
                       left: '50%',
-                      transform: 'translateX(-50%)',
+                      transform: hasNotes ? 'translateX(-100%)' : 'translateX(-50%)',
                       width: 4,
                       height: 4,
                       borderRadius: 2,
                       background: '#E63946'
+                    }}
+                  />
+                )}
+                {hasNotes && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: 4,
+                      left: '50%',
+                      transform: hasGoals ? 'translateX(0%)' : 'translateX(-50%)',
+                      width: 4,
+                      height: 4,
+                      borderRadius: 2,
+                      background: '#4A90E2'
                     }}
                   />
                 )}
@@ -209,40 +239,80 @@ export function Calendar() {
         </div>
       </Card>
 
-      {selectedDate && goalsByDeadline.has(selectedDate) && (
-        <Card style={{ padding: 24 }}>
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-                  color: 'var(--color-muted)',
-              marginBottom: 12
-            }}
-          >
-            Goals con deadline el {selectedDate}
-          </h3>
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {goalsByDeadline.get(selectedDate)!.map((goal) => (
-              <li
-                key={goal.id}
-                style={{
-                  padding: 12,
-                  background: 'var(--color-card-bg)',
-                  borderRadius: 8,
-                  border: '1px solid var(--color-card-border)'
-                }}
-              >
-                <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
-                  {goal.title}
-                </span>
-                <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--color-muted)' }}>
-                  {goal.progress} / {goal.target} {goal.unit}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+      {selectedDate && eventsByDate.has(selectedDate) && (() => {
+        const events = eventsByDate.get(selectedDate)!
+        return (
+          <Card style={{ padding: 24 }}>
+            {events.goals.length > 0 && (
+              <>
+                <h3
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'var(--color-muted)',
+                    marginBottom: 12
+                  }}
+                >
+                  Goals con deadline el {selectedDate}
+                </h3>
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {events.goals.map((goal) => (
+                    <li
+                      key={goal.id}
+                      style={{
+                        padding: 12,
+                        background: 'var(--color-card-bg)',
+                        borderRadius: 8,
+                        border: '1px solid var(--color-card-border)'
+                      }}
+                    >
+                      <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
+                        {goal.title}
+                      </span>
+                      <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--color-muted)' }}>
+                        {goal.progress} / {goal.target} {goal.unit}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {events.notes.length > 0 && (
+              <>
+                <h3
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'var(--color-muted)',
+                    marginTop: events.goals.length > 0 ? 24 : 0,
+                    marginBottom: 12
+                  }}
+                >
+                  Notes creadas el {selectedDate}
+                </h3>
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {events.notes.map((note) => (
+                    <li
+                      key={note.id}
+                      style={{
+                        padding: 12,
+                        background: 'var(--color-card-bg)',
+                        borderRadius: 8,
+                        border: '1px solid var(--color-card-border)'
+                      }}
+                    >
+                      <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
+                        {note.title}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
+        )
+      })()}
 
       {goals.filter((g) => g.deadline).length === 0 && (
         <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>

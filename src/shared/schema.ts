@@ -20,7 +20,17 @@ export const habits = sqliteTable('habits', {
   createdAt: text('created_at').notNull()
 })
 
+export const notes = sqliteTable('notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  content: text('content').notNull().default(''),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull()
+})
+
 export type Goal = InferSelectModel<typeof goals>
 export type GoalInsert = InferInsertModel<typeof goals>
 export type Habit = InferSelectModel<typeof habits>
 export type HabitInsert = InferInsertModel<typeof habits>
+export type Note = InferSelectModel<typeof notes>
+export type NoteInsert = InferInsertModel<typeof notes>

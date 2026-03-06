@@ -35,6 +35,14 @@ const api = {
     ) => ipcRenderer.invoke('habits:update', id, data),
     delete: (id: number) => ipcRenderer.invoke('habits:delete', id),
     incrementDay: (id: number) => ipcRenderer.invoke('habits:incrementDay', id)
+  },
+  notes: {
+    getAll: () => ipcRenderer.invoke('notes:getAll'),
+    create: (data: { title: string; content?: string }) =>
+      ipcRenderer.invoke('notes:create', data),
+    update: (id: number, data: Partial<{ title: string; content: string }>) =>
+      ipcRenderer.invoke('notes:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('notes:delete', id)
   }
 }
 

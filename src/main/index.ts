@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -41,6 +41,19 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Set an explicit app menu on macOS to avoid "representedObject is not a WeakPtrToElectronMenuModelAsNSObject" warning
+  if (process.platform === 'darwin') {
+    Menu.setApplicationMenu(
+      Menu.buildFromTemplate([
+        { role: 'appMenu' as const },
+        { role: 'fileMenu' as const },
+        { role: 'editMenu' as const },
+        { role: 'viewMenu' as const },
+        { role: 'windowMenu' as const }
+      ])
+    )
+  }
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

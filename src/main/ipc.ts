@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
-import { db } from './database'
-import { goals, habits } from '@shared/schema'
-import { eq } from 'drizzle-orm'
+import { db, sqlite } from './database'
+import { goals, habits, notes } from '@shared/schema'
+import { eq, desc } from 'drizzle-orm'
 
 export function registerIpcHandlers(): void {
   // Goals
@@ -55,7 +55,7 @@ export function registerIpcHandlers(): void {
   )
 
   ipcMain.handle('goals:delete', async (_, id: number) => {
-    db.delete(goals).where(eq(goals.id, id))
+    db.delete(goals).where(eq(goals.id, id)).run()
     return { success: true }
   })
 
@@ -92,7 +92,7 @@ export function registerIpcHandlers(): void {
   )
 
   ipcMain.handle('habits:delete', async (_, id: number) => {
-    db.delete(habits).where(eq(habits.id, id))
+    db.delete(habits).where(eq(habits.id, id)).run()
     return { success: true }
   })
 
@@ -105,5 +105,56 @@ export function registerIpcHandlers(): void {
       .where(eq(habits.id, id))
       .returning()
     return result[0]
+  })
+
+  // Notes
+  ipcMain.handle('notes:getAll', async () => {
+    return db.select().from(notes).orderBy(desc(notes.updatedAt)).all()
+  })
+
+  ipcMain.handle('notes:create', async (_, data: { title: string; content?: string }) => {
+    const now = new Date().toISOString()
+    db.insert(notes)
+      .values({
+        title: data.title,
+        content: data.content ?? '',
+        createdAt: now,
+        updatedAt: now
+      })
+      .run()
+
+    const row = sqlite.prepare('SELECT last_insert_rowid() as id').get() as { id: number }
+    const note = db.select().from(notes).where(eq(notes.id, row.id)).get()
+    if (!note) throw new Error('No se pudo crear la nota')
+    return note
+  })
+
+  ipcMain.handle(
+    'notes:update',
+    async (_, id: number, data: Partial<{ title: string; content: string }>) => {
+      const updated = db
+        .update(notes)
+        .set({
+          ...data,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(notes.id, id))
+        .returning()
+        .get()
+
+      if (updated != null) return updated
+
+      const fallback = db.select().from(notes).where(eq(notes.id, id)).get()
+      if (fallback) return fallback
+
+      throw new Error('No se pudo actualizar la nota')
+    }
+  )
+
+  ipcMain.handle('notes:delete', async (_, id: number) => {
+    const idNum = typeof id === 'string' ? parseInt(id, 10) : Number(id)
+    if (Number.isNaN(idNum)) throw new Error('Invalid note id')
+    db.delete(notes).where(eq(notes.id, idNum)).run()
+    return { success: true }
   })
 }
