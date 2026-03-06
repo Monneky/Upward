@@ -1,5 +1,9 @@
 appId: com.electron.app
 productName: upward
+publish:
+  provider: github
+  owner: Monneky
+  repo: Upward
 directories:
   buildResources: build
 files:
@@ -21,7 +25,18 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  target: dmg
+  arch:
+    - x64
+    - arm64
   entitlementsInherit: build/entitlements.mac.plist
+  # Mac notarization with @electron/notarize (uncomment when ready):
+  # 1. npm install -D @electron/notarize
+  # 2. Create scripts/notarize.js to call notarize({ appPath, teamId, ... })
+  # 3. Uncomment below and set your Apple Team ID
+  # notarize:
+  #   teamId: YOUR_APPLE_TEAM_ID
+  # afterSign: scripts/notarize.js
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -40,8 +55,5 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: true
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
