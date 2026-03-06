@@ -31,15 +31,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Patch dmg-builder mirror URL
+      - name: Debug and patch dmg-builder
         run: |
-          FILE=$(find node_modules -path "*/dmg-builder/out/dmgUtil.js" | head -1)
-          echo "Patching: $FILE"
-          sed -i '' \
-            's|https://cdn.npmmirror.com/binaries/electron|https://github.com/electron-userland/electron-builder-binaries/releases/download|g' \
-            "$FILE"
-          echo "Done. Verifying patch:"
-          grep -n "github.com/electron-userland" "$FILE" | head -5
+          echo "=== Finding dmg-builder files ==="
+          find node_modules -name "dmgUtil.js" 2>/dev/null
+          find node_modules -name "*.js" | xargs grep -l "cdn.npmmirror.com" 2>/dev/null
+
+          echo "=== Patching ALL files with the bad URL ==="
+          find node_modules -name "*.js" | xargs grep -l "cdn.npmmirror.com" 2>/dev/null | while read file; do
+            echo "Patching: $file"
+            sed -i '' 's|https://cdn.npmmirror.com/binaries/electron|https://github.com/electron-userland/electron-builder-binaries/releases/download|g' "$file"
+          done
+
+          echo "=== Verifying no bad URLs remain ==="
+          find node_modules -name "*.js" | xargs grep -l "cdn.npmmirror.com" 2>/dev/null && echo "STILL HAS BAD URL" || echo "ALL CLEAN"
 
       - name: Pre-download dmg-builder binary
         run: |
