@@ -32,6 +32,18 @@ button:focus {
 :root {
   --color-primary: #e63946;
   --color-primary-hover: #ff6b6b;
+  /* Fallback until theme class is applied */
+  --color-bg: #0a0a0a;
+  --color-bg-sidebar: #0d0d0d;
+  --color-border-subtle: #1f1f1f;
+  --color-text: #f0ead6;
+  --color-muted: #888888;
+  --color-input-bg: #111111;
+  --color-card-bg: #111111;
+  --color-card-border: #1f1f1f;
+  --color-nav-divider: #1f1f1f;
+  --color-footer-text: #333333;
+  --color-progress-bg: #1f1f1f;
 }
 
 html.theme-dark {

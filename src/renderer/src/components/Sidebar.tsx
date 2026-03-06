@@ -1,12 +1,14 @@
+import type React from 'react'
+
 export type Page = 'dashboard' | 'goals' | 'habits' | 'calendar' | 'projects'
 
-type Theme = 'light' | 'dark'
+type ThemeMode = 'light' | 'dark' | 'system'
 
 interface SidebarProps {
   currentPage: Page
   onNavigate: (page: Page) => void
-  theme: Theme
-  onToggleTheme: () => void
+  themeMode: ThemeMode
+  onChangeThemeMode: (mode: ThemeMode) => void
 }
 
 const navItems: { id: Page; label: string }[] = [
@@ -17,7 +19,32 @@ const navItems: { id: Page; label: string }[] = [
   { id: 'projects', label: 'Projects' }
 ]
 
-export function Sidebar({ currentPage, onNavigate, theme, onToggleTheme }: SidebarProps) {
+const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system']
+
+const THEME_ICONS: Record<ThemeMode, string> = {
+  light: '☀️',
+  dark: '🌙',
+  system: '💻'
+}
+
+const THEME_LABELS: Record<ThemeMode, string> = {
+  light: 'Light mode',
+  dark: 'Dark mode',
+  system: 'System'
+}
+
+export function Sidebar({
+  currentPage,
+  onNavigate,
+  themeMode,
+  onChangeThemeMode
+}: SidebarProps): React.JSX.Element {
+  const cycleTheme = (): void => {
+    const idx = THEME_CYCLE.indexOf(themeMode)
+    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length]
+    onChangeThemeMode(next)
+  }
+
   return (
     <>
       <div
@@ -26,31 +53,37 @@ export function Sidebar({ currentPage, onNavigate, theme, onToggleTheme }: Sideb
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 12
         }}
       >
         <h1
           style={{
             color: 'var(--color-text)',
             fontSize: 20,
-            fontWeight: 700,
+            fontWeight: 700
           }}
         >
           🧭 Upward
         </h1>
         <button
           type="button"
-          onClick={onToggleTheme}
+          onClick={cycleTheme}
+          title={THEME_LABELS[themeMode]}
           style={{
-            fontSize: 11,
-            padding: '6px 10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
             borderRadius: 999,
-            border: `1px solid var(--color-border-subtle)`,
+            border: '1px solid var(--color-border-subtle)',
             background: 'var(--color-card-bg)',
-            color: 'var(--color-muted)',
+            fontSize: 16,
+            cursor: 'pointer'
           }}
+          aria-label={`Theme: ${THEME_LABELS[themeMode]}. Click to change.`}
         >
-          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          <span aria-hidden>{THEME_ICONS[themeMode]}</span>
         </button>
       </div>
       <div

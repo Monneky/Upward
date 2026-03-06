@@ -233,7 +233,6 @@ export function Calendar() {
                 }}
               >
                 <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
-                <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
                   {goal.title}
                 </span>
                 <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--color-muted)' }}>
