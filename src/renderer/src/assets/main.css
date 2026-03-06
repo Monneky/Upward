@@ -89,14 +89,32 @@ body {
   margin-bottom: 16px;
 }
 
-.markdown-preview ul,
+.markdown-preview ul {
+  margin-bottom: 16px;
+  padding-left: 24px;
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
 .markdown-preview ol {
   margin-bottom: 16px;
   padding-left: 24px;
+  list-style-type: decimal;
+  list-style-position: outside;
 }
 
 .markdown-preview li {
   margin-bottom: 4px;
+  display: list-item;
+}
+
+.markdown-preview ul ul {
+  list-style-type: circle;
+  margin-top: 4px;
+}
+
+.markdown-preview ul ul ul {
+  list-style-type: square;
 }
 
 .markdown-preview code {

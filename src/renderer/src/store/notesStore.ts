@@ -32,22 +32,41 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   },
 
   addNote: async (data) => {
-    const note = await window.api.notes.create(data)
-    set({ notes: [note, ...get().notes], selectedNoteId: note.id })
-    return note
+    try {
+      const note = await window.api.notes.create(data)
+      set({ notes: [note, ...get().notes], selectedNoteId: note.id, error: null })
+      return note
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Failed to create note'
+      set({ error })
+      throw new Error(error)
+    }
   },
 
   updateNote: async (id, data) => {
-    const updated = await window.api.notes.update(id, data)
-    set({ notes: get().notes.map((n) => (n.id === id ? updated : n)) })
+    try {
+      const updated = await window.api.notes.update(id, data)
+      set({ notes: get().notes.map((n) => (n.id === id ? updated : n)), error: null })
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Failed to update note'
+      set({ error })
+      throw new Error(error)
+    }
   },
 
   deleteNote: async (id) => {
-    await window.api.notes.delete(id)
-    set({
-      notes: get().notes.filter((n) => n.id !== id),
-      selectedNoteId: get().selectedNoteId === id ? null : get().selectedNoteId
-    })
+    try {
+      await window.api.notes.delete(id)
+      set({
+        notes: get().notes.filter((n) => n.id !== id),
+        selectedNoteId: get().selectedNoteId === id ? null : get().selectedNoteId,
+        error: null
+      })
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Failed to delete note'
+      set({ error })
+      throw new Error(error)
+    }
   },
 
   selectNote: (id) => set({ selectedNoteId: id })

@@ -11,8 +11,12 @@ export function Notes() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle')
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('Notes component mounted')
+    console.log('window.api:', window.api)
+    console.log('window.api.notes:', window.api?.notes)
     fetchNotes()
   }, [fetchNotes])
 
@@ -60,10 +64,17 @@ export function Notes() {
   }, [title, content, selectedNoteId, notes, updateNote])
 
   const handleNewNote = async () => {
+    console.log('handleNewNote called')
     try {
-      await addNote({ title: 'Nueva Nota', content: '' })
+      setError(null)
+      console.log('Calling addNote...')
+      const result = await addNote({ title: 'Nueva Nota', content: '' })
+      console.log('Note created successfully:', result)
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al crear la nota'
+      setError(errorMsg)
       console.error('Failed to create note:', err)
+      alert('Error al crear nota: ' + errorMsg)
     }
   }
 

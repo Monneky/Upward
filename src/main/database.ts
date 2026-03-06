@@ -8,6 +8,7 @@ import * as schema from '@shared/schema'
 const dbPath = join(app.getPath('userData'), 'upward.db')
 const sqlite = new Database(dbPath)
 export const db = drizzle(sqlite, { schema })
+export { sqlite }
 
 export function runMigrations(): void {
   const migrationsFolder = join(app.getAppPath(), 'drizzle')
