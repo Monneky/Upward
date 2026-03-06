@@ -81,13 +81,13 @@ export function Goals() {
             style={{
               fontSize: 28,
               fontWeight: 700,
-              color: '#F0EAD6',
+              color: 'var(--color-text)',
               marginBottom: 4
             }}
           >
             Goals
           </h1>
-          <p style={{ fontSize: 13, color: '#444' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             Track and complete your objectives
           </p>
         </div>
@@ -107,7 +107,7 @@ export function Goals() {
               <p style={{ color: '#E63946', fontSize: 13 }}>{error}</p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, color: '#888' }}>Título *</label>
+              <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Título *</label>
               <input
                 type="text"
                 value={title}
@@ -118,7 +118,7 @@ export function Goals() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, color: '#888' }}>Categoría *</label>
+              <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Categoría *</label>
               <input
                 type="text"
                 value={category}
@@ -130,7 +130,7 @@ export function Goals() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 12, color: '#888' }}>Objetivo *</label>
+                <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Objetivo *</label>
                 <input
                   type="number"
                   min={1}
@@ -141,7 +141,7 @@ export function Goals() {
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 12, color: '#888' }}>Unidad *</label>
+                <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Unidad *</label>
                 <input
                   type="text"
                   value={unit}
@@ -152,7 +152,7 @@ export function Goals() {
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, color: '#888' }}>Fecha límite (opcional)</label>
+              <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Fecha límite (opcional)</label>
               <input
                 type="date"
                 value={deadline}
@@ -160,7 +160,7 @@ export function Goals() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, color: '#888' }}>Notas (opcional)</label>
+              <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Notas (opcional)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -195,16 +195,16 @@ export function Goals() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                       <div>
-                        <span style={{ fontWeight: 500, color: '#F0EAD6' }}>
+                        <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
                           {goal.title}
                         </span>
                         {goal.category && (
-                          <p style={{ marginTop: 4, fontSize: 12, color: '#444' }}>
+                          <p style={{ marginTop: 4, fontSize: 12, color: 'var(--color-muted)' }}>
                             {goal.category}
                           </p>
                         )}
                       </div>
-                      <span style={{ fontSize: 14, color: '#888' }}>
+                      <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
                         {goal.progress} / {goal.target} {goal.unit}
                       </span>
                     </div>

@@ -50,13 +50,13 @@ export function Habits() {
             style={{
               fontSize: 28,
               fontWeight: 700,
-              color: '#F0EAD6',
+              color: 'var(--color-text)',
               marginBottom: 4
             }}
           >
             Habits
           </h1>
-          <p style={{ fontSize: 13, color: '#444' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             Daily routines and streaks
           </p>
         </div>
@@ -76,7 +76,7 @@ export function Habits() {
               <p style={{ color: '#E63946', fontSize: 13 }}>{error}</p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, color: '#888' }}>Título *</label>
+              <label style={{ fontSize: 12, color: 'var(--color-muted)' }}>Título *</label>
               <input
                 type="text"
                 value={title}
@@ -105,15 +105,15 @@ export function Habits() {
             <li key={habit.id}>
               <Card style={{ padding: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 500, color: '#F0EAD6' }}>
+                  <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
                     {habit.title}
                   </span>
                   <span
                     style={{
                       fontSize: 12,
                       fontWeight: 500,
-                      color: '#888',
-                      background: '#1f1f1f',
+                      color: 'var(--color-muted)',
+                      background: 'var(--color-card-bg)',
                       padding: '4px 10px',
                       borderRadius: 6
                     }}

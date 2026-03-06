@@ -16,8 +16,8 @@ export function EmptyState({ icon, title, description }: EmptyStateProps) {
         justifyContent: 'center',
         padding: '64px 32px',
         textAlign: 'center',
-        background: '#111',
-        border: '1px dashed #1f1f1f',
+          background: 'var(--color-card-bg)',
+          border: '1px dashed var(--color-card-border)',
         borderRadius: 12
       }}
     >
@@ -26,9 +26,9 @@ export function EmptyState({ icon, title, description }: EmptyStateProps) {
           {icon}
         </span>
       )}
-      <p style={{ fontWeight: 500, color: '#888' }}>{title}</p>
+      <p style={{ fontWeight: 500, color: 'var(--color-muted)' }}>{title}</p>
       {description && (
-        <p style={{ marginTop: 4, fontSize: 13, color: '#666', maxWidth: 280 }}>
+        <p style={{ marginTop: 4, fontSize: 13, color: 'var(--color-muted)', maxWidth: 280 }}>
           {description}
         </p>
       )}

@@ -8,13 +8,13 @@ export function Projects() {
           style={{
             fontSize: 28,
             fontWeight: 700,
-            color: '#F0EAD6',
+            color: 'var(--color-text)',
             marginBottom: 4
           }}
         >
           Projects
         </h1>
-        <p style={{ fontSize: 13, color: '#444' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
           Organize work by project
         </p>
       </header>

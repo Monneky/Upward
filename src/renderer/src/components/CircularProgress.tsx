@@ -42,7 +42,7 @@ export function CircularProgress({
             cy={cy}
             r={r}
             fill="none"
-            stroke="#1f1f1f"
+            stroke="var(--color-progress-bg)"
             strokeWidth={stroke}
           />
           <circle
@@ -79,7 +79,7 @@ export function CircularProgress({
             justifyContent: 'center',
             fontSize: size * 0.22,
             fontWeight: 600,
-            color: '#F0EAD6'
+            color: 'var(--color-text)'
           }}
         >
           {Math.round(pct)}%
@@ -91,7 +91,7 @@ export function CircularProgress({
             fontSize: 11,
             fontWeight: 500,
             letterSpacing: 2,
-            color: '#444',
+            color: 'var(--color-muted)',
             textTransform: 'uppercase',
             textAlign: 'center'
           }}
