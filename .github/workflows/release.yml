@@ -31,6 +31,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Patch dmg-builder mirror URL
+        run: |
+          FILE=$(find node_modules -path "*/dmg-builder/out/dmgUtil.js" | head -1)
+          echo "Patching: $FILE"
+          sed -i '' \
+            's|https://cdn.npmmirror.com/binaries/electron|https://github.com/electron-userland/electron-builder-binaries/releases/download|g' \
+            "$FILE"
+          echo "Done. Verifying patch:"
+          grep -n "github.com/electron-userland" "$FILE" | head -5
+
       - name: Pre-download dmg-builder binary
         run: |
           # electron-builder looks here on macOS
