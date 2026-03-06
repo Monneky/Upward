@@ -1,34 +1,23 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useState } from 'react'
+import { Sidebar } from './components/Sidebar'
+import { Dashboard } from './pages/Dashboard'
+import { Goals } from './pages/Goals'
+import { Habits } from './pages/Habits'
+
+type Page = 'dashboard' | 'goals' | 'habits'
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+    <div className="flex h-screen w-full bg-gray-950 text-gray-100">
+      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <main className="flex-1 overflow-auto">
+        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'goals' && <Goals />}
+        {currentPage === 'habits' && <Habits />}
+      </main>
+    </div>
   )
 }
 

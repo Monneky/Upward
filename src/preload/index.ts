@@ -1,12 +1,43 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
-const api = {}
+const api = {
+  goals: {
+    getAll: () => ipcRenderer.invoke('goals:getAll'),
+    create: (data: {
+      title: string
+      category: string
+      target: number
+      unit: string
+      deadline?: string
+      notes?: string
+    }) => ipcRenderer.invoke('goals:create', data),
+    update: (
+      id: number,
+      data: Partial<{
+        title: string
+        category: string
+        target: number
+        unit: string
+        progress: number
+        deadline: string
+        notes: string
+      }>
+    ) => ipcRenderer.invoke('goals:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('goals:delete', id)
+  },
+  habits: {
+    getAll: () => ipcRenderer.invoke('habits:getAll'),
+    create: (data: { title: string }) => ipcRenderer.invoke('habits:create', data),
+    update: (
+      id: number,
+      data: Partial<{ title: string; completedDays: number }>
+    ) => ipcRenderer.invoke('habits:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('habits:delete', id),
+    incrementDay: (id: number) => ipcRenderer.invoke('habits:incrementDay', id)
+  }
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
