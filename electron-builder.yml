@@ -1,31 +1,22 @@
 appId: com.norte.app
 productName: Norte
 
-publish:
-  provider: github
-  owner: Monneky
-  repo: Upward
-  releaseType: release
 directories:
   buildResources: build
+  output: dist
+
 files:
-  - 'drizzle/**'
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - out/**/*
+  - node_modules/**/*
+  - package.json
+  - drizzle/**/*
+
+extraMetadata:
+  main: out/main/index.js
+
 asarUnpack:
-  - resources/**
   - '**/node_modules/better-sqlite3/**'
-win:
-  executableName: upward
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+
 mac:
   category: public.app-category.productivity
   target:
@@ -34,13 +25,6 @@ mac:
         - x64
         - arm64
   entitlementsInherit: build/entitlements.mac.plist
-  # Mac notarization with @electron/notarize (uncomment when ready):
-  # 1. npm install -D @electron/notarize
-  # 2. Create scripts/notarize.js to call notarize({ appPath, teamId, ... })
-  # 3. Uncomment below and set your Apple Team ID
-  # notarize:
-  #   teamId: YOUR_APPLE_TEAM_ID
-  # afterSign: scripts/notarize.js
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -49,17 +33,12 @@ mac:
   notarize: false
 
 dmg:
-  artifactName: ${name}-${version}.${ext}
   writeUpdateInfo: false
-linux:
-  target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
+
+publish:
+  provider: github
+  owner: Monneky
+  repo: Upward
+  releaseType: release
+
 npmRebuild: true
-electronDownload:
-  mirror: https://npmmirror.com/mirrors/electron/
