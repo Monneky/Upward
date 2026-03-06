@@ -31,19 +31,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Patch mirror URL
+      - name: Find and patch mirror URL
         run: |
-          echo "=== Finding the file with cdn.npmmirror.com ==="
-          grep -rn "cdn.npmmirror.com" node_modules/ --include="*.js" -l
+          echo "=== Searching ALL file types ==="
+          grep -rn "cdn.npmmirror.com" node_modules/ -l 2>/dev/null || echo "Not found in node_modules"
 
-          echo "=== Patching ALL matches ==="
-          grep -rn "cdn.npmmirror.com" node_modules/ --include="*.js" -l | while read file; do
-            echo "Patching: $file"
-            sed -i '' 's|https://cdn.npmmirror.com/binaries/electron|https://github.com/electron-userland/electron-builder-binaries/releases/download|g' "$file"
-          done
+          echo "=== Searching in app-builder-lib specifically ==="
+          grep -rn "npmmirror" node_modules/app-builder-lib/ -l 2>/dev/null || echo "Not in app-builder-lib"
 
-          echo "=== Done. Files remaining with bad URL: ==="
-          grep -rn "cdn.npmmirror.com" node_modules/ --include="*.js" -l || echo "NONE - All clean!"
+          echo "=== Searching in builder-util-runtime ==="
+          grep -rn "npmmirror\|mirror" node_modules/builder-util-runtime/ -l 2>/dev/null || echo "Not in builder-util-runtime"
+
+          echo "=== Show where the download URL is built ==="
+          grep -rn "npmmirror\|binaries/electron\|releaseType\|dmg-builder" node_modules/app-builder-lib/out/ 2>/dev/null | head -20
 
       - name: Pre-download dmg-builder binary
         run: |
