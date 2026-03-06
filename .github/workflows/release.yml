@@ -17,6 +17,7 @@ jobs:
       - run: npm run build && npx electron-builder --mac --x64 --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
 
   build-mac-arm64:
     runs-on: macos-latest
@@ -29,3 +30,4 @@ jobs:
       - run: npm run build && npx electron-builder --mac --arm64 --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
