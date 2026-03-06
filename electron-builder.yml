@@ -17,6 +17,25 @@ mac:
   category: public.app-category.productivity
   target: dmg
 
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Utility
+
 dmg:
   writeUpdateInfo: false
 
