@@ -1,4 +1,4 @@
-export type Page = 'dashboard' | 'goals' | 'habits' | 'projects'
+export type Page = 'dashboard' | 'goals' | 'habits' | 'calendar' | 'projects'
 
 interface SidebarProps {
   currentPage: Page
@@ -9,6 +9,7 @@ const navItems: { id: Page; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'goals', label: 'Goals' },
   { id: 'habits', label: 'Habits' },
+  { id: 'calendar', label: 'Calendar' },
   { id: 'projects', label: 'Projects' }
 ]
 

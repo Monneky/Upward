@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './pages/Dashboard'
 import { Goals } from './pages/Goals'
 import { Habits } from './pages/Habits'
+import { Calendar } from './pages/Calendar'
 import { Projects } from './pages/Projects'
 
 function App(): React.JSX.Element {
@@ -18,6 +19,7 @@ function App(): React.JSX.Element {
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'goals' && <Goals />}
         {currentPage === 'habits' && <Habits />}
+        {currentPage === 'calendar' && <Calendar />}
         {currentPage === 'projects' && <Projects />}
       </main>
     </div>

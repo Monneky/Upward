@@ -41,6 +41,39 @@ button:focus {
   font-family: 'DM Sans', sans-serif;
 }
 
+.btn-cta:hover {
+  background: #ff6b6b;
+}
+
+.btn-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+textarea,
+select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #f0ead6;
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #555;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #e63946;
+}
+
 body {
   min-height: 100vh;
   color: #f0ead6;
