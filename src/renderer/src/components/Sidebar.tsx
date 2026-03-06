@@ -1,6 +1,6 @@
 import type React from 'react'
 
-export type Page = 'dashboard' | 'goals' | 'habits' | 'calendar' | 'projects'
+export type Page = 'dashboard' | 'goals' | 'habits' | 'calendar' | 'projects' | 'notes'
 
 type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -16,6 +16,7 @@ const navItems: { id: Page; label: string }[] = [
   { id: 'goals', label: 'Goals' },
   { id: 'habits', label: 'Habits' },
   { id: 'calendar', label: 'Calendar' },
+  { id: 'notes', label: 'Notes' },
   { id: 'projects', label: 'Projects' }
 ]
 

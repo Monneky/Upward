@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { db } from './database'
-import { goals, habits } from '@shared/schema'
-import { eq } from 'drizzle-orm'
+import { goals, habits, notes } from '@shared/schema'
+import { eq, desc } from 'drizzle-orm'
 
 export function registerIpcHandlers(): void {
   // Goals
@@ -105,5 +105,44 @@ export function registerIpcHandlers(): void {
       .where(eq(habits.id, id))
       .returning()
     return result[0]
+  })
+
+  // Notes
+  ipcMain.handle('notes:getAll', async () => {
+    return db.select().from(notes).orderBy(desc(notes.updatedAt)).all()
+  })
+
+  ipcMain.handle('notes:create', async (_, data: { title: string; content?: string }) => {
+    const now = new Date().toISOString()
+    const result = db
+      .insert(notes)
+      .values({
+        title: data.title,
+        content: data.content || '',
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning()
+    return result[0]
+  })
+
+  ipcMain.handle(
+    'notes:update',
+    async (_, id: number, data: Partial<{ title: string; content: string }>) => {
+      const result = db
+        .update(notes)
+        .set({
+          ...data,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(notes.id, id))
+        .returning()
+      return result[0]
+    }
+  )
+
+  ipcMain.handle('notes:delete', async (_, id: number) => {
+    db.delete(notes).where(eq(notes.id, id))
+    return { success: true }
   })
 }

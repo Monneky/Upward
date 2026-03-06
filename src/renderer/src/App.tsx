@@ -5,6 +5,7 @@ import { Dashboard } from '@renderer/pages/Dashboard'
 import { Goals } from '@renderer/pages/Goals'
 import { Habits } from '@renderer/pages/Habits'
 import { Calendar } from '@renderer/pages/Calendar'
+import { Notes } from '@renderer/pages/Notes'
 import { Projects } from '@renderer/pages/Projects'
 
 type Theme = 'light' | 'dark'
@@ -81,6 +82,7 @@ function App(): React.JSX.Element {
         {currentPage === 'goals' && <Goals />}
         {currentPage === 'habits' && <Habits />}
         {currentPage === 'calendar' && <Calendar />}
+        {currentPage === 'notes' && <Notes />}
         {currentPage === 'projects' && <Projects />}
       </main>
     </div>
