@@ -179,7 +179,7 @@ export function Calendar() {
                 onClick={() => setSelectedDate(isSelected ? null : dateKey)}
                 style={{
                   padding: 10,
-                  background: isSelected ? '#1a0a0a' : 'transparent',
+                  background: isSelected ? 'var(--color-selection-bg)' : 'transparent',
                   border: `1px solid ${isToday ? '#E63946' : 'transparent'}`,
                   borderRadius: 8,
                   color: hasDeadline ? 'var(--color-text)' : 'var(--color-muted)',

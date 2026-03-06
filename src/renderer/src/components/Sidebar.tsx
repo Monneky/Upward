@@ -114,7 +114,7 @@ export function Sidebar({
                 borderRadius: 8,
                 fontSize: 14,
                 textAlign: 'left',
-                background: isActive ? '#1a0a0a' : 'transparent',
+                background: isActive ? 'var(--color-selection-bg)' : 'transparent',
                 color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
                 borderLeft: `3px solid ${isActive ? 'var(--color-primary)' : 'transparent'}`,
                 transition: 'color 0.15s, background 0.15s'

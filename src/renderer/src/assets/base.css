@@ -44,6 +44,7 @@ button:focus {
   --color-nav-divider: #1f1f1f;
   --color-footer-text: #333333;
   --color-progress-bg: #1f1f1f;
+  --color-selection-bg: #1a0a0a;
 }
 
 html.theme-dark {
@@ -58,6 +59,7 @@ html.theme-dark {
   --color-nav-divider: #1f1f1f;
   --color-footer-text: #333333;
   --color-progress-bg: #1f1f1f;
+  --color-selection-bg: #1a0a0a;
 }
 
 html.theme-light {
@@ -72,6 +74,7 @@ html.theme-light {
   --color-nav-divider: #e5e7eb;
   --color-footer-text: #9ca3af;
   --color-progress-bg: #e5e7eb;
+  --color-selection-bg: #f3f4f6;
 }
 
 .btn-cta {
