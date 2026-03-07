@@ -42,6 +42,23 @@ export interface UpwardAPI {
     update: (id: number, data: Partial<{ title: string; content: string }>) => Promise<Note>
     delete: (id: number) => Promise<{ success: boolean }>
   }
+  integrations: {
+    getStatus: () => Promise<{
+      googleCalendar:
+        | { status: 'connected'; email: string; lastSyncAt: string | null }
+        | { status: 'disconnected' }
+      canStoreTokens: boolean
+      googleClientIdConfigured: boolean
+    }>
+    connectGoogleCalendar: () => Promise<{ success: boolean; email: string }>
+    disconnectGoogleCalendar: () => Promise<{ success: boolean }>
+    syncGoogleCalendar: () => Promise<{ success: boolean; lastSyncAt: string | null }>
+    getNextCalendarEvent: () => Promise<{
+      title: string
+      startAt: string
+      endAt: string
+    } | null>
+  }
 }
 
 declare global {

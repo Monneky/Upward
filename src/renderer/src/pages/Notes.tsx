@@ -11,7 +11,7 @@ export function Notes() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const [_error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     console.log('Notes component mounted')
