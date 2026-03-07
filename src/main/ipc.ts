@@ -1,7 +1,12 @@
 import { ipcMain } from 'electron'
 import { db, sqlite } from './database'
-import { goals, habits, notes } from '@shared/schema'
-import { eq, desc } from 'drizzle-orm'
+import { goals, habits, notes, calendarEventsCache } from '@shared/schema'
+import { eq, desc, and, gt } from 'drizzle-orm'
+import { runGoogleCalendarOAuth } from './oauth/googleCalendar'
+import { saveGoogleCalendarTokens } from './services/tokenStorage'
+import { getGoogleCalendarIntegration, deleteGoogleCalendarIntegration, canStoreTokensSecurely } from './services/tokenStorage'
+import { syncGoogleCalendarToCache } from './services/googleCalendarApi'
+import { getGoogleClientId, isGoogleClientIdConfigured } from './config/integrationsConfig'
 
 export function registerIpcHandlers(): void {
   // Goals
@@ -156,5 +161,63 @@ export function registerIpcHandlers(): void {
     if (Number.isNaN(idNum)) throw new Error('Invalid note id')
     db.delete(notes).where(eq(notes.id, idNum)).run()
     return { success: true }
+  })
+
+  // Integrations (Google Calendar)
+  ipcMain.handle('integrations:getStatus', async () => {
+    const canStore = canStoreTokensSecurely()
+    const google = getGoogleCalendarIntegration()
+    const googleClientIdConfigured = isGoogleClientIdConfigured()
+    return {
+      googleCalendar: google
+        ? { status: 'connected' as const, email: google.email, lastSyncAt: google.lastSyncAt }
+        : { status: 'disconnected' as const },
+      canStoreTokens: canStore,
+      googleClientIdConfigured
+    }
+  })
+
+  ipcMain.handle('integrations:connectGoogleCalendar', async () => {
+    const clientId = getGoogleClientId()
+    if (!canStoreTokensSecurely()) throw new Error('Encryption not available. Cannot store tokens securely.')
+    const { tokens, email } = await runGoogleCalendarOAuth(clientId)
+    saveGoogleCalendarTokens(email, tokens)
+    try {
+      await syncGoogleCalendarToCache()
+    } catch (_) {
+      // First sync optional; connection is still saved
+    }
+    return { success: true, email }
+  })
+
+  ipcMain.handle('integrations:disconnectGoogleCalendar', async () => {
+    deleteGoogleCalendarIntegration()
+    return { success: true }
+  })
+
+  ipcMain.handle('integrations:syncGoogleCalendar', async () => {
+    await syncGoogleCalendarToCache()
+    const integration = getGoogleCalendarIntegration()
+    return { success: true, lastSyncAt: integration?.lastSyncAt ?? null }
+  })
+
+  ipcMain.handle('integrations:getNextCalendarEvent', async () => {
+    const integration = getGoogleCalendarIntegration()
+    if (!integration) return null
+    const now = new Date().toISOString()
+    const row = db
+      .select()
+      .from(calendarEventsCache)
+      .where(
+        and(
+          eq(calendarEventsCache.integrationId, integration.id),
+          gt(calendarEventsCache.startAt, now)
+        )
+      )
+      .orderBy(calendarEventsCache.startAt)
+      .limit(1)
+      .get()
+    if (!row) return null
+    return { title: row.title, startAt: row.startAt, endAt: row.endAt }
   })
 }

@@ -1,17 +1,35 @@
 import { useEffect, useMemo } from 'react'
 import { useGoalsStore } from '@renderer/store/goalsStore'
+import { useConnectionsStore } from '@renderer/store/connectionsStore'
 import { Card } from '@renderer/components/Card'
 import { ProgressBar } from '@renderer/components/ProgressBar'
 import { CircularProgress } from '@renderer/components/CircularProgress'
 import { EmptyState } from '@renderer/components/EmptyState'
+import { NextEventCountdown } from '@renderer/components/dashboard/NextEventCountdown'
 
 export function Dashboard() {
   const { goals, fetchGoals, fetchHabits } = useGoalsStore()
+  const {
+    googleCalendarStatus,
+    nextEvent,
+    fetchStatus,
+    fetchNextEvent
+  } = useConnectionsStore()
 
   useEffect(() => {
     fetchGoals()
     fetchHabits()
   }, [fetchGoals, fetchHabits])
+
+  useEffect(() => {
+    fetchStatus()
+  }, [fetchStatus])
+
+  useEffect(() => {
+    if (googleCalendarStatus === 'connected') {
+      fetchNextEvent()
+    }
+  }, [googleCalendarStatus, fetchNextEvent])
 
   const completedCount = useMemo(
     () => goals.filter((g) => g.progress >= g.target).length,
@@ -73,6 +91,13 @@ export function Dashboard() {
           Overview of your goals and progress
         </p>
       </header>
+
+      {googleCalendarStatus === 'connected' && (
+        <NextEventCountdown
+          event={nextEvent}
+          hasConnection={true}
+        />
+      )}
 
       <section
         className="dashboard-stats"

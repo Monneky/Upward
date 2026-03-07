@@ -43,6 +43,22 @@ const api = {
     update: (id: number, data: Partial<{ title: string; content: string }>) =>
       ipcRenderer.invoke('notes:update', id, data),
     delete: (id: number) => ipcRenderer.invoke('notes:delete', id)
+  },
+  integrations: {
+    getStatus: () =>
+      ipcRenderer.invoke('integrations:getStatus') as Promise<{
+        googleCalendar: { status: 'connected'; email: string; lastSyncAt: string | null } | { status: 'disconnected' }
+        canStoreTokens: boolean
+        googleClientIdConfigured: boolean
+      }>,
+    connectGoogleCalendar: () =>
+      ipcRenderer.invoke('integrations:connectGoogleCalendar') as Promise<{ success: boolean; email: string }>,
+    disconnectGoogleCalendar: () =>
+      ipcRenderer.invoke('integrations:disconnectGoogleCalendar') as Promise<{ success: boolean }>,
+    syncGoogleCalendar: () =>
+      ipcRenderer.invoke('integrations:syncGoogleCalendar') as Promise<{ success: boolean; lastSyncAt: string | null }>,
+    getNextCalendarEvent: () =>
+      ipcRenderer.invoke('integrations:getNextCalendarEvent') as Promise<{ title: string; startAt: string; endAt: string } | null>
   }
 }
 
