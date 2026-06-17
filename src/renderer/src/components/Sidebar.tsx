@@ -1,6 +1,6 @@
 import type React from 'react'
 
-export type Page = 'routine'
+export type Page = 'routine' | 'projects'
 
 type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -11,7 +11,10 @@ interface SidebarProps {
   onChangeThemeMode: (mode: ThemeMode) => void
 }
 
-const navItems: { id: Page; label: string }[] = [{ id: 'routine', label: 'Routine' }]
+const navItems: { id: Page; label: string }[] = [
+  { id: 'routine', label: 'Routine' },
+  { id: 'projects', label: 'Proyectos' }
+]
 
 const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system']
 

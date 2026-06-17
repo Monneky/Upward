@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore, useState } from 'react'
 import type { Page } from './components/Sidebar'
 import { Sidebar } from './components/Sidebar'
 import { Routines } from '@renderer/pages/Routines'
+import { Projects } from '@renderer/pages/Projects'
 
 type Theme = 'light' | 'dark'
 type ThemeMode = 'light' | 'dark' | 'system'
@@ -74,6 +75,7 @@ function App(): React.JSX.Element {
       </aside>
       <main className="app-main">
         {currentPage === 'routine' && <Routines />}
+        {currentPage === 'projects' && <Projects />}
       </main>
     </div>
   )
