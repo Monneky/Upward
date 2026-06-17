@@ -1,1 +1,1 @@
-export type { Goal, GoalInsert, Habit, HabitInsert, Note, NoteInsert } from '@shared/schema'
+export type { Routine, RoutineInsert } from '@shared/schema'

@@ -44,6 +44,52 @@ const api = {
       ipcRenderer.invoke('notes:update', id, data),
     delete: (id: number) => ipcRenderer.invoke('notes:delete', id)
   },
+  projects: {
+    getAll: () => ipcRenderer.invoke('projects:getAll'),
+    create: (data: { name: string; description?: string; status?: string; priority?: string; category?: string; deadline?: string }) =>
+      ipcRenderer.invoke('projects:create', data),
+    update: (id: number, data: Partial<{ name: string; description: string; status: string; priority: string; category: string; deadline: string }>) =>
+      ipcRenderer.invoke('projects:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('projects:delete', id)
+  },
+  routines: {
+    getAll: () => ipcRenderer.invoke('routines:getAll'),
+    create: (data: { name: string; emoji?: string; daysOfWeek?: string[]; time?: string; description?: string; color?: string }) =>
+      ipcRenderer.invoke('routines:create', data),
+    update: (id: number, data: Partial<{ name: string; emoji: string; daysOfWeek: string[]; time: string; description: string; color: string }>) =>
+      ipcRenderer.invoke('routines:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('routines:delete', id)
+  },
+  kanban: {
+    getColumns: (projectId: number) => ipcRenderer.invoke('kanban:getColumns', projectId),
+    createColumn: (data: { projectId: number; name: string; color?: string }) =>
+      ipcRenderer.invoke('kanban:createColumn', data),
+    updateColumn: (id: number, data: Partial<{ name: string; color: string }>) =>
+      ipcRenderer.invoke('kanban:updateColumn', id, data),
+    deleteColumn: (id: number) => ipcRenderer.invoke('kanban:deleteColumn', id),
+    reorderColumns: (projectId: number, columnIds: number[]) =>
+      ipcRenderer.invoke('kanban:reorderColumns', projectId, columnIds)
+  },
+  sprints: {
+    getAll: (projectId: number) => ipcRenderer.invoke('sprints:getAll', projectId),
+    create: (data: { projectId: number; name: string; goal?: string; startDate: string; endDate: string }) =>
+      ipcRenderer.invoke('sprints:create', data),
+    update: (id: number, data: Partial<{ name: string; goal: string; startDate: string; endDate: string; status: string }>) =>
+      ipcRenderer.invoke('sprints:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('sprints:delete', id)
+  },
+  tasks: {
+    getAll: (projectId: number) => ipcRenderer.invoke('tasks:getAll', projectId),
+    create: (data: { projectId: number; columnId: number; title: string; description?: string; priority?: string; sprintId?: number; estimatedTime?: number; deadline?: string }) =>
+      ipcRenderer.invoke('tasks:create', data),
+    update: (id: number, data: Partial<{ title: string; description: string; priority: string; sprintId: number | null; estimatedTime: number | null; trackedTime: number; deadline: string | null }>) =>
+      ipcRenderer.invoke('tasks:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('tasks:delete', id),
+    move: (taskId: number, newColumnId: number, newOrder: number) =>
+      ipcRenderer.invoke('tasks:move', taskId, newColumnId, newOrder),
+    reorder: (columnId: number, taskIds: number[]) =>
+      ipcRenderer.invoke('tasks:reorder', columnId, taskIds)
+  },
   integrations: {
     getStatus: () =>
       ipcRenderer.invoke('integrations:getStatus') as Promise<{
