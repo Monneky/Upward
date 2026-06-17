@@ -1,12 +1,7 @@
 import { useEffect, useSyncExternalStore, useState } from 'react'
 import type { Page } from './components/Sidebar'
 import { Sidebar } from './components/Sidebar'
-import { Dashboard } from '@renderer/pages/Dashboard'
-import { Goals } from '@renderer/pages/Goals'
-import { Habits } from '@renderer/pages/Habits'
-import { Calendar } from '@renderer/pages/Calendar'
-import { Notes } from '@renderer/pages/Notes'
-import { Projects } from '@renderer/pages/Projects'
+import { Routines } from '@renderer/pages/Routines'
 
 type Theme = 'light' | 'dark'
 type ThemeMode = 'light' | 'dark' | 'system'
@@ -22,7 +17,7 @@ function getSystemPrefersDark(): boolean {
 }
 
 function App(): React.JSX.Element {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
+  const [currentPage, setCurrentPage] = useState<Page>('routine')
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'system'
@@ -78,12 +73,7 @@ function App(): React.JSX.Element {
         />
       </aside>
       <main className="app-main">
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'goals' && <Goals />}
-        {currentPage === 'habits' && <Habits />}
-        {currentPage === 'calendar' && <Calendar />}
-        {currentPage === 'notes' && <Notes />}
-        {currentPage === 'projects' && <Projects />}
+        {currentPage === 'routine' && <Routines />}
       </main>
     </div>
   )

@@ -6,14 +6,6 @@ import { loadEnvFile } from './envLoader'
 import { runMigrations } from './database'
 import { registerIpcHandlers } from './ipc'
 
-import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import { loadEnvFile } from './envLoader'
-import { runMigrations } from './database'
-import { registerIpcHandlers } from './ipc'
-
 // En desarrollo, cargar .env desde la raíz del proyecto (donde está package.json).
 // El main se ejecuta desde out/main/, así que la raíz es dos niveles arriba.
 if (is.dev) {

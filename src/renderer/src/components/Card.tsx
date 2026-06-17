@@ -1,12 +1,12 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, HTMLAttributes } from 'react'
 
-interface CardProps {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   className?: string
   style?: CSSProperties
 }
 
-export function Card({ children, className = '', style }: CardProps) {
+export function Card({ children, className = '', style, ...rest }: CardProps) {
   return (
     <div
       className={className}
@@ -16,6 +16,7 @@ export function Card({ children, className = '', style }: CardProps) {
         borderRadius: 12,
         ...style
       }}
+      {...rest}
     >
       {children}
     </div>
