@@ -1,43 +1,16 @@
 import type React from 'react'
 
-export type Page = 'routine'
-
-type ThemeMode = 'light' | 'dark' | 'system'
+export type Page = 'routine' | 'settings'
 
 interface SidebarProps {
   currentPage: Page
   onNavigate: (page: Page) => void
-  themeMode: ThemeMode
-  onChangeThemeMode: (mode: ThemeMode) => void
 }
 
 const navItems: { id: Page; label: string }[] = [{ id: 'routine', label: 'Routine' }]
 
-const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system']
-
-const THEME_ICONS: Record<ThemeMode, string> = {
-  light: '☀️',
-  dark: '🌙',
-  system: '💻'
-}
-
-const THEME_LABELS: Record<ThemeMode, string> = {
-  light: 'Light mode',
-  dark: 'Dark mode',
-  system: 'System'
-}
-
-export function Sidebar({
-  currentPage,
-  onNavigate,
-  themeMode,
-  onChangeThemeMode
-}: SidebarProps): React.JSX.Element {
-  const cycleTheme = (): void => {
-    const idx = THEME_CYCLE.indexOf(themeMode)
-    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length]
-    onChangeThemeMode(next)
-  }
+export function Sidebar({ currentPage, onNavigate }: SidebarProps): React.JSX.Element {
+  const settingsActive = currentPage === 'settings'
 
   return (
     <>
@@ -61,8 +34,8 @@ export function Sidebar({
         </h1>
         <button
           type="button"
-          onClick={cycleTheme}
-          title={THEME_LABELS[themeMode]}
+          onClick={() => onNavigate('settings')}
+          title="Ajustes"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -70,14 +43,14 @@ export function Sidebar({
             width: 32,
             height: 32,
             borderRadius: 999,
-            border: '1px solid var(--color-border-subtle)',
-            background: 'var(--color-card-bg)',
+            border: `1px solid ${settingsActive ? 'var(--color-primary)' : 'var(--color-border-subtle)'}`,
+            background: settingsActive ? 'var(--color-selection-bg)' : 'var(--color-card-bg)',
             fontSize: 16,
             cursor: 'pointer'
           }}
-          aria-label={`Theme: ${THEME_LABELS[themeMode]}. Click to change.`}
+          aria-label="Ajustes"
         >
-          <span aria-hidden>{THEME_ICONS[themeMode]}</span>
+          <span aria-hidden>⚙️</span>
         </button>
       </div>
       <div
