@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore, useState } from 'react'
 import type { Page } from './components/Sidebar'
 import { Sidebar } from './components/Sidebar'
 import { Routines } from '@renderer/pages/Routines'
+import { Settings } from '@renderer/pages/Settings'
 
 type Theme = 'light' | 'dark'
 type ThemeMode = 'light' | 'dark' | 'system'
@@ -65,15 +66,13 @@ function App(): React.JSX.Element {
   return (
     <div className="app-layout">
       <aside className="app-sidebar">
-        <Sidebar
-          currentPage={currentPage}
-          onNavigate={setCurrentPage}
-          themeMode={themeMode}
-          onChangeThemeMode={handleThemeChange}
-        />
+        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
       </aside>
       <main className="app-main">
         {currentPage === 'routine' && <Routines />}
+        {currentPage === 'settings' && (
+          <Settings themeMode={themeMode} onChangeThemeMode={handleThemeChange} />
+        )}
       </main>
     </div>
   )
