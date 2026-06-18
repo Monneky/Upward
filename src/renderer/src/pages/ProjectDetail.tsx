@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useProjectsStore } from '@renderer/store/projectsStore'
+import { HeaderActions } from '@renderer/components/HeaderActions'
 
 interface ProjectDetailProps {
   projectId: number
@@ -57,6 +58,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
             {project.name}
           </h1>
         </div>
+        <HeaderActions />
       </div>
 
       {/* Info row: priority, deadline, status */}
