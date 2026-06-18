@@ -3,6 +3,7 @@ import type { Page } from './components/Sidebar'
 import { Sidebar } from './components/Sidebar'
 import { Routines } from '@renderer/pages/Routines'
 import { Projects } from '@renderer/pages/Projects'
+import { ProjectDetail } from '@renderer/pages/ProjectDetail'
 
 type Theme = 'light' | 'dark'
 type ThemeMode = 'light' | 'dark' | 'system'
@@ -19,6 +20,12 @@ function getSystemPrefersDark(): boolean {
 
 function App(): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState<Page>('routine')
+  const [openProjectId, setOpenProjectId] = useState<number | null>(null)
+
+  const handleNavigate = (page: Page): void => {
+    setOpenProjectId(null)
+    setCurrentPage(page)
+  }
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'system'
@@ -68,14 +75,19 @@ function App(): React.JSX.Element {
       <aside className="app-sidebar">
         <Sidebar
           currentPage={currentPage}
-          onNavigate={setCurrentPage}
+          onNavigate={handleNavigate}
           themeMode={themeMode}
           onChangeThemeMode={handleThemeChange}
         />
       </aside>
       <main className="app-main">
         {currentPage === 'routine' && <Routines />}
-        {currentPage === 'projects' && <Projects />}
+        {currentPage === 'projects' &&
+          (openProjectId === null ? (
+            <Projects onOpenProject={setOpenProjectId} />
+          ) : (
+            <ProjectDetail projectId={openProjectId} onBack={() => setOpenProjectId(null)} />
+          ))}
       </main>
     </div>
   )
