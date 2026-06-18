@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useProjectsStore } from '@renderer/store/projectsStore'
 import { HeaderActions } from '@renderer/components/HeaderActions'
+import { ProjectDescriptionCard } from '@renderer/components/ProjectDescriptionCard'
 
 interface ProjectDetailProps {
   projectId: number
@@ -122,7 +123,11 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
         })}
       </div>
 
-      <div style={{ minHeight: 200 }} />
+      {activeTab === 'resumen' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <ProjectDescriptionCard project={project} />
+        </div>
+      )}
     </div>
   )
 }
