@@ -1,2 +1,4 @@
 export type { Routine, RoutineInsert } from '@shared/schema'
 export type { Project, ProjectInsert } from '@shared/schema'
+export type { Task, TaskInsert } from '@shared/schema'
+export type { KanbanColumn, KanbanColumnInsert } from '@shared/schema'
