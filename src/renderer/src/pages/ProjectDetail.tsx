@@ -4,6 +4,7 @@ import { useTasksStore } from '@renderer/store/tasksStore'
 import { useKanbanStore } from '@renderer/store/kanbanStore'
 import { HeaderActions } from '@renderer/components/HeaderActions'
 import { ProjectDescriptionCard } from '@renderer/components/ProjectDescriptionCard'
+import { Dropdown } from '@renderer/components/Dropdown'
 
 interface ProjectDetailProps {
   projectId: number
@@ -21,6 +22,22 @@ const PRIORITIES: { value: string; label: string }[] = [
   { value: 'medium', label: 'Media' },
   { value: 'high', label: 'Alta' }
 ]
+
+type TaskFilter = 'todas' | 'pendientes' | 'enProgreso' | 'completas'
+
+const STATUS_BUCKETS: { value: TaskFilter; label: string }[] = [
+  { value: 'todas', label: 'Todas' },
+  { value: 'pendientes', label: 'Pendientes' },
+  { value: 'enProgreso', label: 'En progreso' },
+  { value: 'completas', label: 'Completas' }
+]
+
+function columnBucket(name = ''): Exclude<TaskFilter, 'todas'> {
+  const n = name.toLowerCase()
+  if (n === 'done' || n.includes('completad')) return 'completas'
+  if (n.includes('progres') || n.includes('review')) return 'enProgreso'
+  return 'pendientes' // Backlog and anything else
+}
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   active: { label: 'Activo', color: '#10B981' },
@@ -46,12 +63,15 @@ const emptyTaskForm: TaskFormState = {
 
 export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.JSX.Element {
   const { projects, fetchProjects } = useProjectsStore()
-  const { tasks, fetchTasks, addTask, deleteTask } = useTasksStore()
+  const { tasks, fetchTasks, addTask } = useTasksStore()
   const { columns, fetchColumns } = useKanbanStore()
 
-  const [activeTab, setActiveTab] = useState<'resumen' | 'tareas'>('resumen')
+  const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'archivos'>('resumen')
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [taskForm, setTaskForm] = useState<TaskFormState>(emptyTaskForm)
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>('todas')
+  const [taskSearch, setTaskSearch] = useState('')
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set())
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -72,6 +92,37 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
     () => tasks.filter((t) => t.projectId === projectId),
     [tasks, projectId]
   )
+
+  const filteredTasks = useMemo(() => {
+    const query = taskSearch.trim().toLowerCase()
+    return projectTasks.filter((task) => {
+      if (query && !task.title.toLowerCase().includes(query)) return false
+      if (taskFilter === 'todas') return true
+      const column = projectColumns.find((c) => c.id === task.columnId)
+      return columnBucket(column?.name) === taskFilter
+    })
+  }, [projectTasks, projectColumns, taskSearch, taskFilter])
+
+  const allFilteredSelected =
+    filteredTasks.length > 0 && filteredTasks.every((t) => selectedTaskIds.has(t.id))
+
+  const toggleAll = (): void => {
+    setSelectedTaskIds((prev) => {
+      if (filteredTasks.length > 0 && filteredTasks.every((t) => prev.has(t.id))) {
+        return new Set()
+      }
+      return new Set(filteredTasks.map((t) => t.id))
+    })
+  }
+
+  const toggleOne = (id: number): void => {
+    setSelectedTaskIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const openTaskModal = (): void => {
     setTaskForm({ ...emptyTaskForm, columnId: projectColumns[0]?.id.toString() ?? '' })
@@ -206,10 +257,10 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
           marginBottom: 24
         }}
       >
-        {(['resumen', 'tareas'] as const).map((tab) => {
+        {(['resumen', 'tareas', 'archivos'] as const).map((tab) => {
           const isActive = activeTab === tab
-          const icons = { resumen: '📋', tareas: '☑️' }
-          const labels = { resumen: 'Resumen', tareas: 'Tareas' }
+          const icons = { resumen: '📋', tareas: '☑️', archivos: '📎' }
+          const labels = { resumen: 'Resumen', tareas: 'Tareas', archivos: 'Archivos' }
           return (
             <button
               key={tab}
@@ -273,89 +324,187 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
             </button>
           </div>
 
-          {projectTasks.length === 0 ? (
-            <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: 0 }}>
-              Aún no hay tareas. Crea la primera con “Nueva tarea”.
-            </p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {projectTasks.map((task) => {
-                const tp = PRIORITY_META[task.priority] ?? PRIORITY_META.medium
-                const column = projectColumns.find((c) => c.id === task.columnId)
+          {/* Filter + search row */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {STATUS_BUCKETS.map((bucket) => {
+                const isActive = taskFilter === bucket.value
                 return (
-                  <div
-                    key={task.id}
+                  <button
+                    key={bucket.value}
+                    type="button"
+                    onClick={() => setTaskFilter(bucket.value)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      padding: '14px 16px',
-                      borderRadius: 10,
-                      border: '1px solid var(--color-card-border)',
-                      background: 'var(--color-card-bg)'
+                      padding: '7px 14px',
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      background: isActive ? 'var(--color-primary)' : 'transparent',
+                      color: isActive ? '#fff' : 'var(--color-muted)',
+                      border: isActive
+                        ? '1px solid var(--color-primary)'
+                        : '1px solid var(--color-card-border)'
                     }}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-                        {task.title}
-                      </span>
-                      {task.description && (
-                        <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
-                          {task.description}
-                        </span>
-                      )}
-                      <div
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            padding: '3px 8px',
-                            borderRadius: 999,
-                            background: tp.color,
-                            color: '#fff'
-                          }}
-                        >
-                          {tp.label}
-                        </span>
-                        {column && (
+                    {bucket.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                style={{ ...inputStyle, width: 220 }}
+                value={taskSearch}
+                onChange={(e) => setTaskSearch(e.target.value)}
+                placeholder="🔍  Buscar tarea…"
+              />
+              <Dropdown
+                triggerContent={<span aria-hidden>⋯</span>}
+                triggerStyle={iconButtonStyle}
+                triggerAriaLabel="Opciones de búsqueda"
+              />
+            </div>
+          </div>
+
+          <div
+            style={{
+              border: '1px solid var(--color-card-border)',
+              borderRadius: 12,
+              overflow: 'hidden'
+            }}
+          >
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: 'var(--color-card-bg)' }}>
+                  <th style={{ ...thStyle, width: 44, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={toggleAll}
+                      aria-label="Seleccionar todas las tareas"
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
+                  <th style={thStyle}>Tarea</th>
+                  <th style={thStyle}>Prioridad</th>
+                  <th style={thStyle}>Estado</th>
+                  <th style={thStyle}>Fecha límite</th>
+                  <th style={{ ...thStyle, width: 50, textAlign: 'right' }}>⋯</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTasks.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{
+                        padding: '20px 14px',
+                        textAlign: 'center',
+                        color: 'var(--color-muted)'
+                      }}
+                    >
+                      {projectTasks.length === 0
+                        ? 'Aún no hay tareas. Crea la primera con “Nueva tarea”.'
+                        : 'No hay tareas que coincidan.'}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTasks.map((task) => {
+                    const tp = PRIORITY_META[task.priority] ?? PRIORITY_META.medium
+                    const column = projectColumns.find((c) => c.id === task.columnId)
+                    return (
+                      <tr key={task.id} style={{ borderTop: '1px solid var(--color-card-border)' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedTaskIds.has(task.id)}
+                            onChange={() => toggleOne(task.id)}
+                            aria-label={`Seleccionar ${task.title}`}
+                            style={{ cursor: 'pointer' }}
+                          />
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                            {task.title}
+                          </span>
+                          {task.description && (
+                            <span
+                              style={{
+                                display: 'block',
+                                fontSize: 12,
+                                color: 'var(--color-muted)',
+                                marginTop: 2
+                              }}
+                            >
+                              {task.description}
+                            </span>
+                          )}
+                        </td>
+                        <td style={tdStyle}>
                           <span
                             style={{
                               fontSize: 11,
                               fontWeight: 600,
                               padding: '3px 8px',
                               borderRadius: 999,
-                              background: 'transparent',
-                              color: 'var(--color-muted)',
-                              border: '1px solid var(--color-card-border)'
+                              background: tp.color,
+                              color: '#fff'
                             }}
                           >
-                            {column.name}
+                            {tp.label}
                           </span>
-                        )}
-                        {task.deadline && (
-                          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                            📅 {task.deadline}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteTask(task.id)}
-                      style={iconButtonStyle}
-                      aria-label="Borrar tarea"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+                        </td>
+                        <td style={tdStyle}>
+                          {column ? (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 600,
+                                padding: '3px 8px',
+                                borderRadius: 999,
+                                background: 'transparent',
+                                color: 'var(--color-muted)',
+                                border: '1px solid var(--color-card-border)'
+                              }}
+                            >
+                              {column.name}
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--color-muted)' }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--color-muted)' }}>
+                          {task.deadline ? `📅 ${task.deadline}` : '—'}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'right' }}>
+                          <Dropdown
+                            triggerContent={<span aria-hidden>⋯</span>}
+                            triggerStyle={iconButtonStyle}
+                            triggerAriaLabel={`Acciones de ${task.title}`}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
+
+      {activeTab === 'archivos' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }} />
       )}
 
       {showTaskModal && (
@@ -500,6 +649,20 @@ const iconButtonStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0
+}
+
+const thStyle: React.CSSProperties = {
+  textAlign: 'left',
+  padding: '10px 14px',
+  fontSize: 12,
+  fontWeight: 600,
+  color: 'var(--color-muted)'
+}
+
+const tdStyle: React.CSSProperties = {
+  padding: '10px 14px',
+  color: 'var(--color-text)',
+  verticalAlign: 'middle'
 }
 
 const labelStyle: React.CSSProperties = {
