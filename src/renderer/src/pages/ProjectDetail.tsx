@@ -128,6 +128,37 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
           <ProjectDescriptionCard project={project} />
         </div>
       )}
+
+      {activeTab === 'tareas' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+              Tareas
+            </h2>
+            <button
+              type="button"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--color-primary)',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>
+                +
+              </span>
+              Nueva tarea
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
