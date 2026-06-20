@@ -69,7 +69,15 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   const { projects, fetchProjects } = useProjectsStore()
   const { tasks, fetchTasks, addTask, updateTask, deleteTask } = useTasksStore()
   const { columns, fetchColumns } = useKanbanStore()
-  const { notes, fetchNotes, addNote, updateNote, deleteNote } = useProjectNotesStore()
+  const {
+    notes,
+    fetchNotes,
+    addNote,
+    updateNote,
+    deleteNote,
+    error: notesError,
+    clearError: clearNotesError
+  } = useProjectNotesStore()
 
   const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'notas' | 'archivos'>('resumen')
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null)
@@ -250,6 +258,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   }
 
   const handleCreateNote = async (): Promise<void> => {
+    clearNotesError()
     const note = await addNote({ projectId, title: 'Nueva nota', content: '' })
     if (note) {
       setSelectedNoteId(note.id)
@@ -261,6 +270,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   }
 
   const handleSelectNote = (note: ProjectNote): void => {
+    clearNotesError()
     setSelectedNoteId(note.id)
     setSelectedNoteProjectId(projectId)
     setNoteTitleDraft(note.title)
@@ -1124,6 +1134,22 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
                       }}
                     >
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{noteContentDraft}</ReactMarkdown>
+                    </div>
+                  )}
+
+                  {/* Error banner */}
+                  {notesError && (
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: '#dc2626',
+                        border: '1px solid #dc2626',
+                        borderRadius: 6,
+                        padding: '8px 12px',
+                        background: 'rgba(220,38,38,0.06)'
+                      }}
+                    >
+                      No se pudo guardar la nota: {notesError}
                     </div>
                   )}
 

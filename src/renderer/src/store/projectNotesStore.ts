@@ -13,6 +13,7 @@ interface ProjectNotesState {
   }) => Promise<ProjectNote | null>
   updateNote: (id: number, data: Partial<{ title: string; content: string }>) => Promise<void>
   deleteNote: (id: number) => Promise<void>
+  clearError: () => void
 }
 
 export const useProjectNotesStore = create<ProjectNotesState>((set, get) => ({
@@ -31,6 +32,7 @@ export const useProjectNotesStore = create<ProjectNotesState>((set, get) => ({
   },
 
   addNote: async (data) => {
+    set({ error: null })
     try {
       const note = await window.api.projectNotes.create(data)
       set({ notes: [...get().notes, note] })
@@ -42,6 +44,7 @@ export const useProjectNotesStore = create<ProjectNotesState>((set, get) => ({
   },
 
   updateNote: async (id, data) => {
+    set({ error: null })
     try {
       const note = await window.api.projectNotes.update(id, data)
       set({ notes: get().notes.map((n) => (n.id === id ? note : n)) })
@@ -57,5 +60,9 @@ export const useProjectNotesStore = create<ProjectNotesState>((set, get) => ({
     } catch (e) {
       set({ error: (e as Error).message })
     }
+  },
+
+  clearError: () => {
+    set({ error: null })
   }
 }))

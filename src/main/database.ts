@@ -12,5 +12,10 @@ export { sqlite }
 
 export function runMigrations(): void {
   const migrationsFolder = join(app.getAppPath(), 'drizzle')
-  migrate(db, { migrationsFolder })
+  try {
+    migrate(db, { migrationsFolder })
+  } catch (e) {
+    console.error('[migrations] failed to apply migrations:', e)
+    throw e
+  }
 }
