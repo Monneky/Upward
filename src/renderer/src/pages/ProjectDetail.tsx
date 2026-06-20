@@ -1112,6 +1112,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
                     />
                   ) : (
                     <div
+                      className="markdown-preview"
                       style={{
                         border: '1px solid var(--color-card-border)',
                         borderRadius: 8,
