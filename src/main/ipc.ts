@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { db, sqlite } from './database'
-import { goals, habits, notes, calendarEventsCache, projects, kanbanColumns, sprints, tasks, routines } from '@shared/schema'
+import { goals, habits, notes, calendarEventsCache, projects, kanbanColumns, sprints, tasks, routines, projectNotes } from '@shared/schema'
 import { eq, desc, and, gt, max } from 'drizzle-orm'
 import { runGoogleCalendarOAuth } from './oauth/googleCalendar'
 import { saveGoogleCalendarTokens } from './services/tokenStorage'
@@ -465,6 +465,39 @@ export function registerIpcHandlers(): void {
     for (let i = 0; i < taskIds.length; i++) {
       db.update(tasks).set({ order: i }).where(and(eq(tasks.id, taskIds[i]), eq(tasks.columnId, columnId))).run()
     }
+    return { success: true }
+  })
+
+  // Project Notes
+  ipcMain.handle('projectNotes:listByProject', async (_, projectId: number) => {
+    return db.select().from(projectNotes).where(eq(projectNotes.projectId, projectId)).orderBy(desc(projectNotes.updatedAt)).all()
+  })
+
+  ipcMain.handle('projectNotes:create', async (_, data: { projectId: number; title: string; content?: string }) => {
+    const now = new Date().toISOString()
+    db.insert(projectNotes).values({
+      projectId: data.projectId,
+      title: data.title,
+      content: data.content ?? '',
+      createdAt: now,
+      updatedAt: now
+    }).run()
+    const row = sqlite.prepare('SELECT last_insert_rowid() as id').get() as { id: number }
+    const note = db.select().from(projectNotes).where(eq(projectNotes.id, row.id)).get()
+    if (!note) throw new Error('No se pudo crear la nota')
+    return note
+  })
+
+  ipcMain.handle('projectNotes:update', async (_, id: number, data: Partial<{ title: string; content: string }>) => {
+    const updated = db.update(projectNotes).set({ ...data, updatedAt: new Date().toISOString() }).where(eq(projectNotes.id, id)).returning().get()
+    if (updated != null) return updated
+    const fallback = db.select().from(projectNotes).where(eq(projectNotes.id, id)).get()
+    if (fallback) return fallback
+    throw new Error('No se pudo actualizar la nota')
+  })
+
+  ipcMain.handle('projectNotes:delete', async (_, id: number) => {
+    db.delete(projectNotes).where(eq(projectNotes.id, id)).run()
     return { success: true }
   })
 }

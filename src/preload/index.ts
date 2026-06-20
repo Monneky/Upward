@@ -90,6 +90,14 @@ const api = {
     reorder: (columnId: number, taskIds: number[]) =>
       ipcRenderer.invoke('tasks:reorder', columnId, taskIds)
   },
+  projectNotes: {
+    listByProject: (projectId: number) => ipcRenderer.invoke('projectNotes:listByProject', projectId),
+    create: (data: { projectId: number; title: string; content?: string }) =>
+      ipcRenderer.invoke('projectNotes:create', data),
+    update: (id: number, data: Partial<{ title: string; content: string }>) =>
+      ipcRenderer.invoke('projectNotes:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('projectNotes:delete', id)
+  },
   integrations: {
     getStatus: () =>
       ipcRenderer.invoke('integrations:getStatus') as Promise<{

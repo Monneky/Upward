@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { Goal, Habit, Note, Project, KanbanColumn, Sprint, Task, Routine } from '@shared/schema'
+import type { Goal, Habit, Note, Project, KanbanColumn, Sprint, Task, Routine, ProjectNote } from '@shared/schema'
 
 export interface UpwardAPI {
   goals: {
@@ -74,6 +74,12 @@ export interface UpwardAPI {
     delete: (id: number) => Promise<{ success: boolean }>
     move: (taskId: number, newColumnId: number, newOrder: number) => Promise<Task>
     reorder: (columnId: number, taskIds: number[]) => Promise<{ success: boolean }>
+  }
+  projectNotes: {
+    listByProject: (projectId: number) => Promise<ProjectNote[]>
+    create: (data: { projectId: number; title: string; content?: string }) => Promise<ProjectNote>
+    update: (id: number, data: Partial<{ title: string; content: string }>) => Promise<ProjectNote>
+    delete: (id: number) => Promise<{ success: boolean }>
   }
   integrations: {
     getStatus: () => Promise<{

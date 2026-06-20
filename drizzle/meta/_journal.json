@@ -36,6 +36,13 @@
       "when": 1781658414571,
       "tag": "0004_red_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1781924641860,
+      "tag": "0005_regular_the_stranger",
+      "breakpoints": true
     }
   ]
 }

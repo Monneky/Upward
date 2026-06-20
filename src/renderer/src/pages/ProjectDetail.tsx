@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useProjectsStore } from '@renderer/store/projectsStore'
 import { useTasksStore } from '@renderer/store/tasksStore'
 import { useKanbanStore } from '@renderer/store/kanbanStore'
+import { useProjectNotesStore } from '@renderer/store/projectNotesStore'
 import { HeaderActions } from '@renderer/components/HeaderActions'
 import { ProjectDescriptionCard } from '@renderer/components/ProjectDescriptionCard'
 import { Dropdown } from '@renderer/components/Dropdown'
-import type { Task } from '@renderer/types'
+import type { Task, ProjectNote } from '@renderer/types'
 
 interface ProjectDetailProps {
   projectId: number
@@ -66,8 +69,14 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   const { projects, fetchProjects } = useProjectsStore()
   const { tasks, fetchTasks, addTask, updateTask, deleteTask } = useTasksStore()
   const { columns, fetchColumns } = useKanbanStore()
+  const { notes, fetchNotes, addNote, updateNote, deleteNote } = useProjectNotesStore()
 
-  const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'archivos'>('resumen')
+  const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'notas' | 'archivos'>('resumen')
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null)
+  const [selectedNoteProjectId, setSelectedNoteProjectId] = useState<number | null>(null)
+  const [noteTitleDraft, setNoteTitleDraft] = useState('')
+  const [noteContentDraft, setNoteContentDraft] = useState('')
+  const [notePreview, setNotePreview] = useState(false)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [taskForm, setTaskForm] = useState<TaskFormState>(emptyTaskForm)
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('todas')
@@ -92,7 +101,16 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   useEffect(() => {
     fetchColumns(projectId)
     fetchTasks(projectId)
-  }, [projectId, fetchColumns, fetchTasks])
+    fetchNotes(projectId)
+  }, [projectId, fetchColumns, fetchTasks, fetchNotes])
+
+  // Reset note selection when project changes (derived state pattern to avoid setState-in-effect)
+  if (selectedNoteProjectId !== null && selectedNoteProjectId !== projectId) {
+    setSelectedNoteId(null)
+    setSelectedNoteProjectId(null)
+    setNoteTitleDraft('')
+    setNoteContentDraft('')
+  }
 
   const projectColumns = useMemo(
     () => columns.filter((c) => c.projectId === projectId),
@@ -101,6 +119,11 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   const projectTasks = useMemo(
     () => tasks.filter((t) => t.projectId === projectId),
     [tasks, projectId]
+  )
+
+  const projectNotesList = useMemo(
+    () => notes.filter((n) => n.projectId === projectId),
+    [notes, projectId]
   )
 
   const filteredTasks = useMemo(() => {
@@ -226,6 +249,40 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
     closeEditTaskModal()
   }
 
+  const handleCreateNote = async (): Promise<void> => {
+    const note = await addNote({ projectId, title: 'Nueva nota', content: '' })
+    if (note) {
+      setSelectedNoteId(note.id)
+      setSelectedNoteProjectId(projectId)
+      setNoteTitleDraft(note.title)
+      setNoteContentDraft(note.content)
+      setNotePreview(false)
+    }
+  }
+
+  const handleSelectNote = (note: ProjectNote): void => {
+    setSelectedNoteId(note.id)
+    setSelectedNoteProjectId(projectId)
+    setNoteTitleDraft(note.title)
+    setNoteContentDraft(note.content)
+    setNotePreview(false)
+  }
+
+  const handleSaveNote = async (): Promise<void> => {
+    if (selectedNoteId == null || !noteTitleDraft.trim()) return
+    await updateNote(selectedNoteId, { title: noteTitleDraft.trim(), content: noteContentDraft })
+  }
+
+  const handleDeleteNote = async (id: number): Promise<void> => {
+    await deleteNote(id)
+    if (selectedNoteId === id) {
+      setSelectedNoteId(null)
+      setSelectedNoteProjectId(null)
+      setNoteTitleDraft('')
+      setNoteContentDraft('')
+    }
+  }
+
   if (!project) {
     return (
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -336,10 +393,15 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
           marginBottom: 24
         }}
       >
-        {(['resumen', 'tareas', 'archivos'] as const).map((tab) => {
+        {(['resumen', 'tareas', 'notas', 'archivos'] as const).map((tab) => {
           const isActive = activeTab === tab
-          const icons = { resumen: '📋', tareas: '☑️', archivos: '📎' }
-          const labels = { resumen: 'Resumen', tareas: 'Tareas', archivos: 'Archivos' }
+          const icons = { resumen: '📋', tareas: '☑️', notas: '📝', archivos: '📎' }
+          const labels = {
+            resumen: 'Resumen',
+            tareas: 'Tareas',
+            notas: 'Notas',
+            archivos: 'Archivos'
+          }
           return (
             <button
               key={tab}
@@ -851,6 +913,244 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
               )}
             </>
           )}
+        </div>
+      )}
+
+      {activeTab === 'notas' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+              Notas
+            </h2>
+            <button
+              type="button"
+              onClick={handleCreateNote}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--color-primary)',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>
+                +
+              </span>
+              Nueva nota
+            </button>
+          </div>
+
+          {/* Two-column layout */}
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            {/* Left: note list */}
+            <div
+              style={{
+                width: 280,
+                flexShrink: 0,
+                border: '1px solid var(--color-card-border)',
+                borderRadius: 12,
+                background: 'var(--color-card-bg)',
+                overflow: 'hidden'
+              }}
+            >
+              {projectNotesList.length === 0 ? (
+                <p
+                  style={{
+                    padding: '20px 14px',
+                    textAlign: 'center',
+                    color: 'var(--color-muted)',
+                    fontSize: 13,
+                    margin: 0
+                  }}
+                >
+                  Aún no hay notas. Crea la primera con &quot;Nueva nota&quot;.
+                </p>
+              ) : (
+                projectNotesList.map((note) => {
+                  const isSelected = selectedNoteId === note.id
+                  return (
+                    <div
+                      key={note.id}
+                      onClick={() => handleSelectNote(note)}
+                      style={{
+                        padding: '10px 14px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid var(--color-card-border)',
+                        border: isSelected
+                          ? '1px solid var(--color-primary)'
+                          : '1px solid transparent',
+                        borderRadius: isSelected ? 8 : 0,
+                        margin: isSelected ? 4 : 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: 14,
+                            color: 'var(--color-text)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {note.title.trim() || 'Sin título'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--color-muted)',
+                            marginTop: 2
+                          }}
+                        >
+                          {note.updatedAt.slice(0, 10)}
+                        </div>
+                      </div>
+                      <Dropdown
+                        triggerContent={<span aria-hidden>⋯</span>}
+                        triggerStyle={iconButtonStyle}
+                        triggerAriaLabel={`Acciones de ${note.title || 'Sin título'}`}
+                        items={[
+                          {
+                            label: 'Eliminar',
+                            icon: '🗑️',
+                            danger: true,
+                            onClick: () => handleDeleteNote(note.id)
+                          }
+                        ]}
+                      />
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Right: editor */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {selectedNoteId == null ? (
+                <p
+                  style={{
+                    color: 'var(--color-muted)',
+                    fontSize: 14,
+                    padding: '20px 0'
+                  }}
+                >
+                  Selecciona o crea una nota.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Title input */}
+                  <input
+                    style={inputStyle}
+                    value={noteTitleDraft}
+                    onChange={(e) => setNoteTitleDraft(e.target.value)}
+                    placeholder="Título de la nota"
+                  />
+
+                  {/* Editar / Vista previa toggle */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: 999,
+                      border: '1px solid var(--color-card-border)',
+                      overflow: 'hidden',
+                      width: 'fit-content'
+                    }}
+                  >
+                    {(
+                      [
+                        { value: false, label: 'Editar' },
+                        { value: true, label: 'Vista previa' }
+                      ] as const
+                    ).map((opt) => {
+                      const isActive = notePreview === opt.value
+                      return (
+                        <button
+                          key={String(opt.value)}
+                          type="button"
+                          onClick={() => setNotePreview(opt.value)}
+                          style={{
+                            padding: '7px 14px',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: isActive ? 'var(--color-primary)' : 'transparent',
+                            color: isActive ? '#fff' : 'var(--color-muted)'
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Editor or preview */}
+                  {!notePreview ? (
+                    <textarea
+                      style={{
+                        ...inputStyle,
+                        minHeight: 320,
+                        resize: 'vertical',
+                        fontFamily: 'monospace'
+                      }}
+                      value={noteContentDraft}
+                      onChange={(e) => setNoteContentDraft(e.target.value)}
+                      placeholder="Escribe tu nota en Markdown…"
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        border: '1px solid var(--color-card-border)',
+                        borderRadius: 8,
+                        padding: '10px 12px',
+                        minHeight: 320,
+                        background: 'var(--color-card-bg)',
+                        color: 'var(--color-text)',
+                        overflowY: 'auto'
+                      }}
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{noteContentDraft}</ReactMarkdown>
+                    </div>
+                  )}
+
+                  {/* Save button */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={handleSaveNote}
+                      disabled={!noteTitleDraft.trim()}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: 8,
+                        border: 'none',
+                        background: 'var(--color-primary)',
+                        color: '#fff',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: noteTitleDraft.trim() ? 'pointer' : 'not-allowed',
+                        opacity: noteTitleDraft.trim() ? 1 : 0.5
+                      }}
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

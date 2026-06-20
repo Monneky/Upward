@@ -86,6 +86,15 @@ export const tasks = sqliteTable('tasks', {
   updatedAt: text('updated_at').notNull()
 })
 
+export const projectNotes = sqliteTable('project_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  projectId: integer('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  content: text('content').notNull().default(''),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull()
+})
+
 export const routines = sqliteTable('routines', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -126,5 +135,7 @@ export type Sprint = InferSelectModel<typeof sprints>
 export type SprintInsert = InferInsertModel<typeof sprints>
 export type Task = InferSelectModel<typeof tasks>
 export type TaskInsert = InferInsertModel<typeof tasks>
+export type ProjectNote = InferSelectModel<typeof projectNotes>
+export type ProjectNoteInsert = InferInsertModel<typeof projectNotes>
 export type Routine = InferSelectModel<typeof routines>
 export type RoutineInsert = InferInsertModel<typeof routines>
