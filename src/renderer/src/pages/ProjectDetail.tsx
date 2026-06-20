@@ -76,6 +76,12 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   const [showEditTaskModal, setShowEditTaskModal] = useState(false)
   const [editTaskForm, setEditTaskForm] = useState<TaskFormState>(emptyTaskForm)
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
+  const [taskView, setTaskView] = useState<'list' | 'board'>(() => {
+    const stored = window.localStorage.getItem('taskView')
+    return stored === 'board' ? 'board' : 'list'
+  })
+  const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null)
+  const [dragOverColumnId, setDragOverColumnId] = useState<number | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -106,6 +112,42 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
       return columnBucket(column?.name) === taskFilter
     })
   }, [projectTasks, projectColumns, taskSearch, taskFilter])
+
+  useEffect(() => {
+    window.localStorage.setItem('taskView', taskView)
+  }, [taskView])
+
+  const boardColumns = useMemo(
+    () => [...projectColumns].sort((a, b) => a.order - b.order),
+    [projectColumns]
+  )
+
+  const boardTasks = useMemo(() => {
+    const query = taskSearch.trim().toLowerCase()
+    if (!query) return projectTasks
+    return projectTasks.filter((t) => t.title.toLowerCase().includes(query))
+  }, [projectTasks, taskSearch])
+
+  const tasksByColumn = useMemo(() => {
+    const map = new Map<number, Task[]>()
+    for (const col of boardColumns) map.set(col.id, [])
+    for (const t of boardTasks) {
+      const list = map.get(t.columnId)
+      if (list) list.push(t)
+    }
+    for (const list of map.values()) list.sort((a, b) => a.order - b.order)
+    return map
+  }, [boardColumns, boardTasks])
+
+  const handleDropOnColumn = async (columnId: number): Promise<void> => {
+    const id = draggedTaskId
+    setDraggedTaskId(null)
+    setDragOverColumnId(null)
+    if (id == null) return
+    const task = projectTasks.find((t) => t.id === id)
+    if (!task || task.columnId === columnId) return
+    await updateTask(id, {}, columnId)
+  }
 
   const allFilteredSelected =
     filteredTasks.length > 0 && filteredTasks.every((t) => selectedTaskIds.has(t.id))
@@ -337,219 +379,478 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
               Tareas
             </h2>
-            <button
-              type="button"
-              onClick={openTaskModal}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '10px 18px',
-                borderRadius: 8,
-                border: 'none',
-                background: 'var(--color-primary)',
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>
-                +
-              </span>
-              Nueva tarea
-            </button>
-          </div>
-
-          {/* Filter + search row */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              flexWrap: 'wrap'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {STATUS_BUCKETS.map((bucket) => {
-                const isActive = taskFilter === bucket.value
-                return (
-                  <button
-                    key={bucket.value}
-                    type="button"
-                    onClick={() => setTaskFilter(bucket.value)}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      background: isActive ? 'var(--color-primary)' : 'transparent',
-                      color: isActive ? '#fff' : 'var(--color-muted)',
-                      border: isActive
-                        ? '1px solid var(--color-primary)'
-                        : '1px solid var(--color-card-border)'
-                    }}
-                  >
-                    {bucket.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                style={{ ...inputStyle, width: 220 }}
-                value={taskSearch}
-                onChange={(e) => setTaskSearch(e.target.value)}
-                placeholder="🔍  Buscar tarea…"
-              />
-              <Dropdown
-                triggerContent={<span aria-hidden>⋯</span>}
-                triggerStyle={iconButtonStyle}
-                triggerAriaLabel="Opciones de búsqueda"
-              />
-            </div>
-          </div>
-
-          <div
-            style={{
-              border: '1px solid var(--color-card-border)',
-              borderRadius: 12,
-              overflow: 'visible'
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead>
-                <tr style={{ background: 'var(--color-card-bg)' }}>
-                  <th style={{ ...thStyle, width: 44, textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={allFilteredSelected}
-                      onChange={toggleAll}
-                      aria-label="Seleccionar todas las tareas"
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </th>
-                  <th style={thStyle}>Tarea</th>
-                  <th style={thStyle}>Prioridad</th>
-                  <th style={thStyle}>Estado</th>
-                  <th style={thStyle}>Fecha límite</th>
-                  <th style={{ ...thStyle, width: 50, textAlign: 'right' }}>⋯</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTasks.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderRadius: 999,
+                  border: '1px solid var(--color-card-border)',
+                  overflow: 'hidden'
+                }}
+              >
+                {(
+                  [
+                    { value: 'list' as const, label: 'Lista' },
+                    { value: 'board' as const, label: 'Tablero' }
+                  ] as const
+                ).map((opt) => {
+                  const isActive = taskView === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setTaskView(opt.value)}
                       style={{
-                        padding: '20px 14px',
-                        textAlign: 'center',
-                        color: 'var(--color-muted)'
+                        padding: '7px 14px',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: isActive ? 'var(--color-primary)' : 'transparent',
+                        color: isActive ? '#fff' : 'var(--color-muted)'
                       }}
                     >
-                      {projectTasks.length === 0
-                        ? 'Aún no hay tareas. Crea la primera con “Nueva tarea”.'
-                        : 'No hay tareas que coincidan.'}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTasks.map((task) => {
-                    const tp = PRIORITY_META[task.priority] ?? PRIORITY_META.medium
-                    const column = projectColumns.find((c) => c.id === task.columnId)
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={openTaskModal}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'var(--color-primary)',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>
+                  +
+                </span>
+                Nueva tarea
+              </button>
+            </div>
+          </div>
+
+          {taskView === 'list' && (
+            <>
+              {/* Filter + search row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {STATUS_BUCKETS.map((bucket) => {
+                    const isActive = taskFilter === bucket.value
                     return (
-                      <tr key={task.id} style={{ borderTop: '1px solid var(--color-card-border)' }}>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
-                          <input
-                            type="checkbox"
-                            checked={selectedTaskIds.has(task.id)}
-                            onChange={() => toggleOne(task.id)}
-                            aria-label={`Seleccionar ${task.title}`}
-                            style={{ cursor: 'pointer' }}
-                          />
+                      <button
+                        key={bucket.value}
+                        type="button"
+                        onClick={() => setTaskFilter(bucket.value)}
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: 999,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          background: isActive ? 'var(--color-primary)' : 'transparent',
+                          color: isActive ? '#fff' : 'var(--color-muted)',
+                          border: isActive
+                            ? '1px solid var(--color-primary)'
+                            : '1px solid var(--color-card-border)'
+                        }}
+                      >
+                        {bucket.label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    style={{ ...inputStyle, width: 220 }}
+                    value={taskSearch}
+                    onChange={(e) => setTaskSearch(e.target.value)}
+                    placeholder="🔍  Buscar tarea…"
+                  />
+                  <Dropdown
+                    triggerContent={<span aria-hidden>⋯</span>}
+                    triggerStyle={iconButtonStyle}
+                    triggerAriaLabel="Opciones de búsqueda"
+                  />
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: '1px solid var(--color-card-border)',
+                  borderRadius: 12,
+                  overflow: 'visible'
+                }}
+              >
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--color-card-bg)' }}>
+                      <th style={{ ...thStyle, width: 44, textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={allFilteredSelected}
+                          onChange={toggleAll}
+                          aria-label="Seleccionar todas las tareas"
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </th>
+                      <th style={thStyle}>Tarea</th>
+                      <th style={thStyle}>Prioridad</th>
+                      <th style={thStyle}>Estado</th>
+                      <th style={thStyle}>Fecha límite</th>
+                      <th style={{ ...thStyle, width: 50, textAlign: 'right' }}>⋯</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTasks.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          style={{
+                            padding: '20px 14px',
+                            textAlign: 'center',
+                            color: 'var(--color-muted)'
+                          }}
+                        >
+                          {projectTasks.length === 0
+                            ? 'Aún no hay tareas. Crea la primera con "Nueva tarea".'
+                            : 'No hay tareas que coincidan.'}
                         </td>
-                        <td style={tdStyle}>
-                          <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-                            {task.title}
+                      </tr>
+                    ) : (
+                      filteredTasks.map((task) => {
+                        const tp = PRIORITY_META[task.priority] ?? PRIORITY_META.medium
+                        const column = projectColumns.find((c) => c.id === task.columnId)
+                        return (
+                          <tr
+                            key={task.id}
+                            style={{ borderTop: '1px solid var(--color-card-border)' }}
+                          >
+                            <td style={{ ...tdStyle, textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={selectedTaskIds.has(task.id)}
+                                onChange={() => toggleOne(task.id)}
+                                aria-label={`Seleccionar ${task.title}`}
+                                style={{ cursor: 'pointer' }}
+                              />
+                            </td>
+                            <td style={tdStyle}>
+                              <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                                {task.title}
+                              </span>
+                              {task.description && (
+                                <span
+                                  style={{
+                                    display: 'block',
+                                    fontSize: 12,
+                                    color: 'var(--color-muted)',
+                                    marginTop: 2
+                                  }}
+                                >
+                                  {task.description}
+                                </span>
+                              )}
+                            </td>
+                            <td style={tdStyle}>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                  background: tp.color,
+                                  color: '#fff'
+                                }}
+                              >
+                                {tp.label}
+                              </span>
+                            </td>
+                            <td style={tdStyle}>
+                              {column ? (
+                                <span
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    padding: '3px 8px',
+                                    borderRadius: 999,
+                                    background: 'transparent',
+                                    color: 'var(--color-muted)',
+                                    border: '1px solid var(--color-card-border)'
+                                  }}
+                                >
+                                  {column.name}
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--color-muted)' }}>—</span>
+                              )}
+                            </td>
+                            <td style={{ ...tdStyle, color: 'var(--color-muted)' }}>
+                              {task.deadline ? `📅 ${task.deadline}` : '—'}
+                            </td>
+                            <td style={{ ...tdStyle, textAlign: 'right' }}>
+                              <Dropdown
+                                triggerContent={<span aria-hidden>⋯</span>}
+                                triggerStyle={iconButtonStyle}
+                                triggerAriaLabel={`Acciones de ${task.title}`}
+                                items={[
+                                  {
+                                    label: 'Editar',
+                                    icon: '✏️',
+                                    onClick: () => openEditTaskModal(task)
+                                  },
+                                  {
+                                    label: 'Eliminar',
+                                    icon: '🗑️',
+                                    danger: true,
+                                    onClick: () => deleteTask(task.id)
+                                  }
+                                ]}
+                              />
+                            </td>
+                          </tr>
+                        )
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {taskView === 'board' && (
+            <>
+              {/* Search row for board view */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  style={{ ...inputStyle, width: 260 }}
+                  value={taskSearch}
+                  onChange={(e) => setTaskSearch(e.target.value)}
+                  placeholder="🔍  Buscar tarea…"
+                />
+              </div>
+
+              {boardColumns.length === 0 ? (
+                <p
+                  style={{
+                    color: 'var(--color-muted)',
+                    fontSize: 14,
+                    textAlign: 'center',
+                    padding: '32px 0'
+                  }}
+                >
+                  Este proyecto no tiene etapas.
+                </p>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 16,
+                    overflowX: 'auto',
+                    paddingBottom: 8,
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  {boardColumns.map((column) => {
+                    const laneTasks = tasksByColumn.get(column.id) ?? []
+                    const isDragOver = dragOverColumnId === column.id
+                    return (
+                      <div
+                        key={column.id}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          setDragOverColumnId(column.id)
+                        }}
+                        onDragLeave={() => setDragOverColumnId(null)}
+                        onDrop={() => handleDropOnColumn(column.id)}
+                        style={{
+                          minWidth: 280,
+                          maxWidth: 280,
+                          flexShrink: 0,
+                          border: isDragOver
+                            ? '1px solid var(--color-primary)'
+                            : '1px solid var(--color-card-border)',
+                          borderRadius: 12,
+                          background: 'var(--color-card-bg)',
+                          padding: 12,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10
+                        }}
+                      >
+                        {/* Lane header */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              color: column.color ?? 'var(--color-text)',
+                              fontSize: 14
+                            }}
+                          >
+                            {column.name}
                           </span>
-                          {task.description && (
-                            <span
-                              style={{
-                                display: 'block',
-                                fontSize: 12,
-                                color: 'var(--color-muted)',
-                                marginTop: 2
-                              }}
-                            >
-                              {task.description}
-                            </span>
-                          )}
-                        </td>
-                        <td style={tdStyle}>
                           <span
                             style={{
                               fontSize: 11,
                               fontWeight: 600,
-                              padding: '3px 8px',
+                              padding: '2px 8px',
                               borderRadius: 999,
-                              background: tp.color,
-                              color: '#fff'
+                              border: '1px solid var(--color-card-border)',
+                              color: 'var(--color-muted)',
+                              background: 'transparent'
                             }}
                           >
-                            {tp.label}
+                            {laneTasks.length}
                           </span>
-                        </td>
-                        <td style={tdStyle}>
-                          {column ? (
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 600,
-                                padding: '3px 8px',
-                                borderRadius: 999,
-                                background: 'transparent',
-                                color: 'var(--color-muted)',
-                                border: '1px solid var(--color-card-border)'
-                              }}
-                            >
-                              {column.name}
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--color-muted)' }}>—</span>
-                          )}
-                        </td>
-                        <td style={{ ...tdStyle, color: 'var(--color-muted)' }}>
-                          {task.deadline ? `📅 ${task.deadline}` : '—'}
-                        </td>
-                        <td style={{ ...tdStyle, textAlign: 'right' }}>
-                          <Dropdown
-                            triggerContent={<span aria-hidden>⋯</span>}
-                            triggerStyle={iconButtonStyle}
-                            triggerAriaLabel={`Acciones de ${task.title}`}
-                            items={[
-                              {
-                                label: 'Editar',
-                                icon: '✏️',
-                                onClick: () => openEditTaskModal(task)
-                              },
-                              {
-                                label: 'Eliminar',
-                                icon: '🗑️',
-                                danger: true,
-                                onClick: () => deleteTask(task.id)
-                              }
-                            ]}
-                          />
-                        </td>
-                      </tr>
+                        </div>
+
+                        {/* Lane body */}
+                        {laneTasks.length === 0 ? (
+                          <p
+                            style={{
+                              fontSize: 12,
+                              color: 'var(--color-muted)',
+                              textAlign: 'center',
+                              margin: '8px 0',
+                              padding: '16px 0'
+                            }}
+                          >
+                            Sin tareas
+                          </p>
+                        ) : (
+                          laneTasks.map((task) => {
+                            const tp = PRIORITY_META[task.priority] ?? PRIORITY_META.medium
+                            return (
+                              <div
+                                key={task.id}
+                                draggable
+                                onDragStart={() => setDraggedTaskId(task.id)}
+                                onDragEnd={() => {
+                                  setDraggedTaskId(null)
+                                  setDragOverColumnId(null)
+                                }}
+                                style={{
+                                  border: '1px solid var(--color-card-border)',
+                                  borderRadius: 8,
+                                  background: 'var(--color-bg)',
+                                  padding: 10,
+                                  cursor: 'grab',
+                                  opacity: draggedTaskId === task.id ? 0.5 : 1
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    justifyContent: 'space-between',
+                                    gap: 6
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontWeight: 600,
+                                      color: 'var(--color-text)',
+                                      fontSize: 14,
+                                      flex: 1
+                                    }}
+                                  >
+                                    {task.title}
+                                  </span>
+                                  <Dropdown
+                                    triggerContent={<span aria-hidden>⋯</span>}
+                                    triggerStyle={iconButtonStyle}
+                                    triggerAriaLabel={`Acciones de ${task.title}`}
+                                    items={[
+                                      {
+                                        label: 'Editar',
+                                        icon: '✏️',
+                                        onClick: () => openEditTaskModal(task)
+                                      },
+                                      {
+                                        label: 'Eliminar',
+                                        icon: '🗑️',
+                                        danger: true,
+                                        onClick: () => deleteTask(task.id)
+                                      }
+                                    ]}
+                                  />
+                                </div>
+                                {task.description && (
+                                  <span
+                                    style={{
+                                      display: 'block',
+                                      fontSize: 12,
+                                      color: 'var(--color-muted)',
+                                      marginTop: 2
+                                    }}
+                                  >
+                                    {task.description}
+                                  </span>
+                                )}
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    marginTop: 8,
+                                    flexWrap: 'wrap'
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      padding: '3px 8px',
+                                      borderRadius: 999,
+                                      background: tp.color,
+                                      color: '#fff'
+                                    }}
+                                  >
+                                    {tp.label}
+                                  </span>
+                                  {task.deadline && (
+                                    <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+                                      📅 {task.deadline}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })
+                        )}
+                      </div>
                     )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
