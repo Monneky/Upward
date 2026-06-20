@@ -19,6 +19,16 @@ interface TasksState {
   fetchTasks: (projectId: number) => Promise<void>
   addTask: (data: TaskCreate) => Promise<void>
   deleteTask: (id: number) => Promise<void>
+  updateTask: (
+    id: number,
+    data: Partial<{
+      title: string
+      description: string
+      priority: string
+      deadline: string | null
+    }>,
+    columnId?: number
+  ) => Promise<void>
 }
 
 export const useTasksStore = create<TasksState>((set, get) => ({
@@ -49,6 +59,19 @@ export const useTasksStore = create<TasksState>((set, get) => ({
     try {
       await window.api.tasks.delete(id)
       set({ tasks: get().tasks.filter((t) => t.id !== id) })
+    } catch (e) {
+      set({ error: (e as Error).message })
+    }
+  },
+
+  updateTask: async (id, data, columnId) => {
+    try {
+      const existing = get().tasks.find((t) => t.id === id)
+      let task = await window.api.tasks.update(id, data)
+      if (columnId != null && existing && columnId !== existing.columnId) {
+        task = await window.api.tasks.move(id, columnId, existing.order)
+      }
+      set({ tasks: get().tasks.map((t) => (t.id === id ? task : t)) })
     } catch (e) {
       set({ error: (e as Error).message })
     }

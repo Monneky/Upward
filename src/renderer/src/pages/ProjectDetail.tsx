@@ -5,6 +5,7 @@ import { useKanbanStore } from '@renderer/store/kanbanStore'
 import { HeaderActions } from '@renderer/components/HeaderActions'
 import { ProjectDescriptionCard } from '@renderer/components/ProjectDescriptionCard'
 import { Dropdown } from '@renderer/components/Dropdown'
+import type { Task } from '@renderer/types'
 
 interface ProjectDetailProps {
   projectId: number
@@ -63,7 +64,7 @@ const emptyTaskForm: TaskFormState = {
 
 export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.JSX.Element {
   const { projects, fetchProjects } = useProjectsStore()
-  const { tasks, fetchTasks, addTask } = useTasksStore()
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask } = useTasksStore()
   const { columns, fetchColumns } = useKanbanStore()
 
   const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'archivos'>('resumen')
@@ -72,6 +73,9 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('todas')
   const [taskSearch, setTaskSearch] = useState('')
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set())
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false)
+  const [editTaskForm, setEditTaskForm] = useState<TaskFormState>(emptyTaskForm)
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -145,6 +149,39 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
       deadline: taskForm.deadline || undefined
     })
     closeTaskModal()
+  }
+
+  const openEditTaskModal = (task: Task): void => {
+    setEditingTaskId(task.id)
+    setEditTaskForm({
+      title: task.title,
+      description: task.description ?? '',
+      deadline: task.deadline ?? '',
+      priority: task.priority,
+      columnId: task.columnId.toString()
+    })
+    setShowEditTaskModal(true)
+  }
+
+  const closeEditTaskModal = (): void => {
+    setShowEditTaskModal(false)
+    setEditTaskForm(emptyTaskForm)
+    setEditingTaskId(null)
+  }
+
+  const handleUpdateTask = async (): Promise<void> => {
+    if (editingTaskId == null || !editTaskForm.title.trim() || !editTaskForm.columnId) return
+    await updateTask(
+      editingTaskId,
+      {
+        title: editTaskForm.title.trim(),
+        description: editTaskForm.description.trim(),
+        priority: editTaskForm.priority,
+        deadline: editTaskForm.deadline || null
+      },
+      Number(editTaskForm.columnId)
+    )
+    closeEditTaskModal()
   }
 
   if (!project) {
@@ -380,7 +417,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
             style={{
               border: '1px solid var(--color-card-border)',
               borderRadius: 12,
-              overflow: 'hidden'
+              overflow: 'visible'
             }}
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -491,6 +528,19 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
                             triggerContent={<span aria-hidden>⋯</span>}
                             triggerStyle={iconButtonStyle}
                             triggerAriaLabel={`Acciones de ${task.title}`}
+                            items={[
+                              {
+                                label: 'Editar',
+                                icon: '✏️',
+                                onClick: () => openEditTaskModal(task)
+                              },
+                              {
+                                label: 'Eliminar',
+                                icon: '🗑️',
+                                danger: true,
+                                onClick: () => deleteTask(task.id)
+                              }
+                            ]}
                           />
                         </td>
                       </tr>
@@ -618,6 +668,127 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps): React.
                 }}
               >
                 Crear tarea
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditTaskModal && (
+        <div style={overlayStyle} onClick={closeEditTaskModal}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: 'var(--color-text)',
+                margin: '0 0 20px'
+              }}
+            >
+              Editar tarea
+            </h2>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Nombre</label>
+              <input
+                style={inputStyle}
+                value={editTaskForm.title}
+                onChange={(e) => setEditTaskForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="¿Qué hay que hacer?"
+                autoFocus
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Descripción</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 80, resize: 'vertical', fontFamily: 'inherit' }}
+                value={editTaskForm.description}
+                onChange={(e) => setEditTaskForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Detalles de la tarea (opcional)"
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Prioridad</label>
+                <select
+                  style={inputStyle}
+                  value={editTaskForm.priority}
+                  onChange={(e) => setEditTaskForm((f) => ({ ...f, priority: e.target.value }))}
+                >
+                  {PRIORITIES.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Fecha límite (opcional)</label>
+                <input
+                  type="date"
+                  style={inputStyle}
+                  value={editTaskForm.deadline}
+                  onChange={(e) => setEditTaskForm((f) => ({ ...f, deadline: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Estado</label>
+              <select
+                style={inputStyle}
+                value={editTaskForm.columnId}
+                onChange={(e) => setEditTaskForm((f) => ({ ...f, columnId: e.target.value }))}
+              >
+                {projectColumns.length === 0 && <option value="">Sin etapas disponibles</option>}
+                {projectColumns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={closeEditTaskModal}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: '1px solid var(--color-card-border)',
+                  background: 'transparent',
+                  color: 'var(--color-muted)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateTask}
+                disabled={editTaskForm.title.trim().length === 0 || editTaskForm.columnId === ''}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'var(--color-primary)',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor:
+                    editTaskForm.title.trim().length === 0 || editTaskForm.columnId === ''
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    editTaskForm.title.trim().length === 0 || editTaskForm.columnId === '' ? 0.5 : 1
+                }}
+              >
+                Guardar cambios
               </button>
             </div>
           </div>
